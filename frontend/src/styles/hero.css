@@ -1,0 +1,320 @@
+/* ===== Hero Section ===== */
+.hero-section {
+  padding-top: var(--gap-md);
+  padding-bottom: 0;
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 14px;
+  min-height: 370px;
+}
+
+/* Main Slider */
+.hero-slider {
+  position: relative;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+
+.hero-slides {
+  display: flex;
+  transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 100%;
+}
+
+.hero-slide {
+  min-width: 100%;
+  position: relative;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  background: linear-gradient(135deg, #9d0011 0%, #ed1c24 50%, #ff4444 100%);
+  display: flex;
+  align-items: center;
+  padding: var(--gap-2xl) var(--gap-2xl);
+}
+
+/* Decorative circles */
+.hero-slide::before {
+  content: '';
+  position: absolute;
+  right: -80px;
+  top: -80px;
+  width: 320px;
+  height: 320px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 50%;
+}
+
+.hero-slide::after {
+  content: '';
+  position: absolute;
+  right: 60px;
+  bottom: -100px;
+  width: 250px;
+  height: 250px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 50%;
+}
+
+.hero-slide-content {
+  color: var(--text-white);
+  max-width: 62%;
+  z-index: 2;
+  position: relative;
+}
+
+.hero-slide-badge {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 5px 14px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: var(--gap-md);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.hero-slide h2 {
+  font-size: 30px;
+  font-weight: 900;
+  line-height: 1.2;
+  margin-bottom: var(--gap-sm);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+}
+
+.hero-slide p {
+  font-size: 14px;
+  opacity: 0.88;
+  line-height: 1.65;
+  margin-bottom: var(--gap-lg);
+}
+
+/* Slider Controls */
+.hero-dots {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 5;
+}
+
+.hero-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.hero-dot.active {
+  background: var(--text-white);
+  width: 26px;
+  border-radius: 4px;
+}
+
+.hero-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 5;
+  transition: all var(--transition-fast);
+}
+
+.hero-arrow:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-50%) scale(1.05);
+}
+
+.hero-arrow-left {
+  left: 14px;
+}
+
+.hero-arrow-right {
+  right: 14px;
+}
+
+/* Sidebar Banners */
+.hero-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.hero-sidebar-banner {
+  flex: 1;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 20px 18px;
+  color: white;
+  text-decoration: none;
+  transition: transform var(--transition), box-shadow var(--transition);
+  box-shadow: var(--shadow-md);
+}
+
+.hero-sidebar-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  transition: background var(--transition-fast);
+}
+
+.hero-sidebar-banner:first-child {
+  background: linear-gradient(145deg, #1e3a5f 0%, #1d4ed8 60%, #3b82f6 100%);
+}
+
+.hero-sidebar-banner:last-child {
+  background: linear-gradient(145deg, #064e3b 0%, #059669 60%, #10b981 100%);
+}
+
+.hero-sidebar-banner:hover {
+  transform: translateY(-3px);
+  color: white;
+  box-shadow: var(--shadow-lg);
+}
+
+.hero-sidebar-banner > div {
+  z-index: 2;
+  position: relative;
+}
+
+.hero-sidebar-banner h3 {
+  font-size: 15px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.hero-sidebar-banner p {
+  font-size: 12px;
+  opacity: 0.82;
+  line-height: 1.4;
+}
+
+.hero-sidebar-icon {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.15;
+  z-index: 1;
+}
+
+/* Banner Strip */
+.banner-strip {
+  padding: var(--gap-md) 0;
+}
+
+.banner-strip-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.banner-strip-item {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  position: relative;
+  aspect-ratio: 16/7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--gap-md);
+  color: white;
+  font-weight: 700;
+  font-size: 13px;
+  text-align: center;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+  box-shadow: var(--shadow-sm);
+  letter-spacing: 0.01em;
+}
+
+.banner-strip-item:hover {
+  transform: translateY(-3px);
+  color: white;
+  box-shadow: var(--shadow-md);
+  filter: brightness(1.05);
+}
+
+.banner-strip-item:nth-child(1) { background: linear-gradient(135deg, #6d28d9, #8b5cf6); }
+.banner-strip-item:nth-child(2) { background: linear-gradient(135deg, #be185d, #ec4899); }
+.banner-strip-item:nth-child(3) { background: linear-gradient(135deg, #c2410c, #f97316); }
+.banner-strip-item:nth-child(4) { background: linear-gradient(135deg, #0369a1, #0ea5e9); }
+
+/* === Responsive === */
+@media (max-width: 900px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .hero-slider {
+    height: 280px;
+  }
+
+  .hero-sidebar {
+    flex-direction: row;
+    height: 140px;
+  }
+
+  .hero-slide h2 {
+    font-size: 24px;
+  }
+
+  .hero-slide-content {
+    max-width: 80%;
+  }
+
+  .banner-strip-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .hero-slide {
+    padding: var(--gap-lg);
+  }
+
+  .hero-slide h2 {
+    font-size: 20px;
+  }
+
+  .hero-sidebar {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .hero-sidebar-banner {
+    height: 100px;
+  }
+
+  .banner-strip-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+}
