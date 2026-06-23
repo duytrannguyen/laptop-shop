@@ -5,7 +5,7 @@ const CartContext = createContext();
 export function CartProvider({ children }) {
   const [cart, setCart] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem('laptopshop_cart') || '[]');
+      return JSON.parse(localStorage.getItem('techshop_cart') || '[]');
     } catch {
       return [];
     }
@@ -13,7 +13,7 @@ export function CartProvider({ children }) {
 
   const save = useCallback((items) => {
     setCart(items);
-    localStorage.setItem('laptopshop_cart', JSON.stringify(items));
+    localStorage.setItem('techshop_cart', JSON.stringify(items));
   }, []);
 
   const add = useCallback((product) => {
@@ -25,7 +25,7 @@ export function CartProvider({ children }) {
           ? { ...item, ...product, qty: Math.min(item.qty + 1, product.stock) }
           : item)
         : [...prev, { ...product, qty: 1 }];
-      localStorage.setItem('laptopshop_cart', JSON.stringify(items));
+      localStorage.setItem('techshop_cart', JSON.stringify(items));
       return items;
     });
   }, []);
@@ -33,7 +33,7 @@ export function CartProvider({ children }) {
   const remove = useCallback((id) => {
     setCart((prev) => {
       const items = prev.filter((i) => i.id !== id);
-      localStorage.setItem('laptopshop_cart', JSON.stringify(items));
+      localStorage.setItem('techshop_cart', JSON.stringify(items));
       return items;
     });
   }, []);
@@ -42,14 +42,14 @@ export function CartProvider({ children }) {
     if (qty < 1) return;
     setCart((prev) => {
       const items = prev.map((i) => (i.id === id ? { ...i, qty: Math.min(qty, i.stock ?? qty) } : i));
-      localStorage.setItem('laptopshop_cart', JSON.stringify(items));
+      localStorage.setItem('techshop_cart', JSON.stringify(items));
       return items;
     });
   }, []);
 
   const clear = useCallback(() => {
     setCart([]);
-    localStorage.removeItem('laptopshop_cart');
+    localStorage.removeItem('techshop_cart');
   }, []);
 
   const total = cart.reduce((sum, item) => {
