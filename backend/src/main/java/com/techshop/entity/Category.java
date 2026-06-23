@@ -1,11 +1,15 @@
 package com.techshop.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -16,7 +20,7 @@ public class Category {
 
     @NotBlank
     @Size(max = 160)
-    @Column(nullable = false, unique = true, length = 160)
+    @Column(nullable = false, length = 160)
     private String name;
 
     @NotBlank
@@ -26,4 +30,31 @@ public class Category {
 
     private String image;
     private boolean active;
+
+    @Column(name = "sort_order", columnDefinition = "INT DEFAULT 0")
+    @Builder.Default
+    private Integer sortOrder = 0;
+
+
+    /**
+     * Danh sách danh mục CHA chứa category này.
+     * Bỏ qua khi serialize JSON để tránh vòng lặp vô hạn.
+     */
+    @JsonIgnore
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "category_parent",
+        joinColumns = @JoinColumn(name = "child_id"),
+        inverseJoinColumns = @JoinColumn(name = "parent_id")
+    )
+    @Builder.Default
+    private Set<Category> parents = new HashSet<>();
+
+    /**
+     * Danh sách danh mục CON thuộc category này.
+     * Được trả về trong JSON (dùng cho tree view).
+     * KHÔNG dùng @Builder.Default vì là mappedBy - Hibernate quản lý.
+     */
+    @ManyToMany(mappedBy = "parents", fetch = FetchType.EAGER)
+    private Set<Category> children = new HashSet<>();
 }

@@ -1,10 +1,16 @@
 /* ===== Admin Panel Styles ===== */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
 .admin-layout {
   display: grid;
   grid-template-columns: 256px 1fr;
   min-height: 100vh;
   background: #f0f2f7;
 }
+
 
 /* ===== Sidebar ===== */
 .admin-sidebar {
@@ -426,6 +432,26 @@
   cursor: pointer;
   border: none;
 }
+
+/* ── Drag & Drop rows ── */
+.admin-table tr[draggable="true"] {
+  cursor: grab;
+}
+
+.admin-table tr[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+.admin-table tr[draggable="true"]:hover td {
+  background: rgba(var(--primary-rgb, 27,59,90), 0.04);
+}
+
+/* Drop indicator line appears above the hovered row */
+.admin-table tr.drag-over-top td {
+  border-top: 2.5px solid var(--primary) !important;
+}
+
+
 
 .admin-btn-edit {
   background: #eff6ff;
@@ -1827,7 +1853,7 @@ input:checked + .toggle-slider:before {
 }
 
 .banner-type-badge.banner-type-hình-ảnh { background: #dbeafe; color: #1e40af; }
-.banner-type-badge.banner-type-hình-ảnh-&-nội-dung { background: #ede9fe; color: #5b21b6; }
+.banner-type-badge.banner-type-hình-ảnh-\&-nội-dung { background: #ede9fe; color: #5b21b6; }
 .banner-type-badge.banner-type-video { background: #fee2e2; color: #991b1b; }
 .banner-type-badge.banner-type-youtube { background: #fee2e2; color: #991b1b; }
 .banner-type-badge { background: #f1f5f9; color: #475569; }

@@ -42,8 +42,8 @@ const fallbackStrip = [
 
 export default function HomePage() {
   const { settings } = useSite();
+  const [allProducts, setAllProducts] = useState([]);
   const [featuredProducts, setFeaturedProducts] = useState([]);
-  const [activeProducts, setActiveProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [heroSlides, setHeroSlides] = useState(fallbackSlides);
   const [sidebarBanners, setSidebarBanners] = useState(fallbackSidebar);
@@ -52,7 +52,7 @@ export default function HomePage() {
 
   useEffect(() => {
     http.get('/products/featured').then((r) => setFeaturedProducts(r.data)).catch(() => {});
-    http.get('/products').then((r) => setActiveProducts(r.data.slice(0, 12))).catch(() => {});
+    http.get('/products').then((r) => setAllProducts(r.data)).catch(() => {});
     http.get('/categories').then((r) => setCategories(r.data)).catch(() => {});
     http.get('/banners/all').then((r) => {
       if (r.data.slider?.length > 0) setHeroSlides(r.data.slider);
@@ -83,6 +83,7 @@ export default function HomePage() {
       <div className="hero-section">
         <div className="container">
           <div className="hero-grid">
+            <div className="hero-menu-spacer"></div>
             {/* Main Slider */}
             <div className="hero-slider">
               <div
@@ -191,63 +192,56 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Categories */}
-      <section className="section">
-        <div className="container">
-          <div className="section-heading">
-            <h2>Danh mục sản phẩm</h2>
-          </div>
-          <div className="categories-grid">
-            {categories.map((cat) => (
-              <Link to={`/products?category=${cat.slug}`} className="category-card" key={cat.id}>
-                <div className="cat-icon">
-                  <Smartphone size={24} />
-                </div>
-                {cat.name}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Products Slider */}
+      {/* Hot Sale / Featured Products */}
       {featuredProducts.length > 0 && (
-        <section className="section" style={{ paddingTop: 0 }}>
+        <section className="section hot-sale-section">
           <div className="container">
-            <div className="section-heading">
-              <h2>Sản phẩm nổi bật</h2>
+            <div className="hot-sale-header">
+              <h2>🔥 HOT SALE GIAO TRONG NHÁY MẮT</h2>
             </div>
-            <div className="featured-slider-wrap" style={{ display: 'flex', gap: '20px', overflowX: 'auto', paddingBottom: '16px', scrollSnapType: 'x mandatory' }}>
-              {featuredProducts.map((p) => (
-                <div key={p.id} style={{ minWidth: '280px', maxWidth: '300px', flexShrink: 0, scrollSnapAlign: 'start' }}>
-                  <ProductCard product={p} />
-                </div>
+            <div className="products-grid">
+              {featuredProducts.slice(0, 5).map((p) => (
+                <ProductCard product={p} key={p.id} />
               ))}
             </div>
           </div>
         </section>
       )}
 
-      {/* Active Products Grid */}
-      <section className="section" style={{ paddingTop: 0 }}>
-        <div className="container">
-          <div className="section-heading">
-            <h2>Sản phẩm mới</h2>
-          </div>
-          <div className="products-grid">
-            {activeProducts.map((p) => (
-              <ProductCard product={p} key={p.id} />
-            ))}
-          </div>
-          {activeProducts.length > 0 && (
-            <div style={{ textAlign: 'center', marginTop: '32px' }}>
-              <Link to="/products" className="btn btn-outline">
-                Xem tất cả sản phẩm
-              </Link>
+      {/* Dynamic Category Blocks */}
+      {categories.map((cat) => {
+        // Find all product IDs for this category tree
+        const getCatIds = (c) => [c.id, ...(c.children || []).flatMap(getCatIds)];
+        const catIds = getCatIds(cat);
+        const catProducts = allProducts.filter(p => p.category && catIds.includes(p.category.id)).slice(0, 10);
+        
+        if (catProducts.length === 0) return null;
+
+        return (
+          <section className="section category-block-section" key={cat.id}>
+            <div className="container">
+              <div className="category-block-header">
+                <h2>{cat.name}</h2>
+                <div className="category-block-tags">
+                  {cat.children?.slice(0, 5).map(child => (
+                    <Link key={child.id} to={`/products?category=${child.slug}`} className="cat-tag">
+                      {child.name}
+                    </Link>
+                  ))}
+                  <Link to={`/products?category=${cat.slug}`} className="cat-tag view-all">
+                    Xem tất cả
+                  </Link>
+                </div>
+              </div>
+              <div className="products-grid">
+                {catProducts.map((p) => (
+                  <ProductCard product={p} key={p.id} />
+                ))}
+              </div>
             </div>
-          )}
-        </div>
-      </section>
+          </section>
+        );
+      })}
 
       {/* Policies */}
       <section className="section" style={{ paddingTop: 0 }}>

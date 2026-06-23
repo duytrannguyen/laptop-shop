@@ -35,6 +35,9 @@ public class DataSeeder {
             try { jdbcTemplate.execute("ALTER TABLE banner ADD COLUMN background VARCHAR(500)"); } catch(Exception e) {}
             // Migrate old banners to SLIDER position
             try { jdbcTemplate.execute("UPDATE banner SET position='SLIDER' WHERE position IS NULL OR position=''"); } catch(Exception e) {}
+            // Add sort_order to category if not exists
+            try { jdbcTemplate.execute("ALTER TABLE category ADD COLUMN sort_order INT DEFAULT 0"); } catch(Exception e) {}
+
 
             SiteSetting setting = settings.findById(1L).orElseGet(() -> SiteSetting.builder()
                     .id(1L)

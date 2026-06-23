@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, Navigate } from 'react-router-dom';
 import { Calendar, ChevronRight } from 'lucide-react';
 import { http } from '../../api/client';
 
@@ -13,7 +13,7 @@ export default function PostDetailPage() {
     http.get(`/posts/${slug}`).then((res) => setPost(res.data)).catch(() => setError('Bài viết không tồn tại hoặc đã được ẩn.'));
   }, [slug]);
 
-  if (error) return <main className="page-content"><div className="container empty-state"><h2>{error}</h2><Link className="btn btn-primary" to="/news">Về trang tin tức</Link></div></main>;
+  if (error) return <Navigate to="/not-found" replace />;
   if (!post) return <main className="page-content"><div className="loading"><div className="spinner" /></div></main>;
 
   return (

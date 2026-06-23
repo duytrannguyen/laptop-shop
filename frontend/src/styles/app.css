@@ -6,6 +6,7 @@
 @import './product-card.css';
 @import './admin.css';
 @import './pages.css';
+@import './home.css';
 
 /* === Reset & Base === */
 *,
@@ -133,7 +134,7 @@ h1, h2, h3, h4, h5, h6 {
   opacity: 0.92;
   color: var(--text-white);
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(208, 0, 22, 0.35);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
 }
 
 .btn-outline {

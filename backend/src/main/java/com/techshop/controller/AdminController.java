@@ -108,34 +108,87 @@ public class AdminController {
 
     @GetMapping("/categories")
     List<Category> categories() {
-        return categories.findAll(Sort.by("name"));
+        return categories.findAllByOrderBySortOrderAscNameAsc();
+    }
+
+    @GetMapping("/categories/tree")
+    List<Category> categoriesTree() {
+        return categories.findRootCategories();
     }
 
     @PostMapping("/categories")
     @ResponseStatus(HttpStatus.CREATED)
-    Category createCategory(@Valid @RequestBody Category category) {
-        category.setId(null);
-        return categories.save(category);
+    @Transactional
+    Category createCategory(@Valid @RequestBody CategoryRequest request) {
+        Category category = new Category();
+        category.setName(request.name().trim());
+        category.setSlug(request.slug().trim());
+        category.setImage(request.image() == null || request.image().isBlank() ? null : request.image().trim());
+        category.setActive(request.active());
+        // Lưu trước để có ID
+        category = categories.save(category);
+        // Gán danh mục cha sau khi có ID
+        if (request.parentIds() != null && !request.parentIds().isEmpty()) {
+            java.util.Set<Category> parentSet = new java.util.HashSet<>(categories.findAllById(request.parentIds()));
+            final Long catId = category.getId();
+            parentSet.removeIf(p -> p.getId().equals(catId));
+            category.setParents(parentSet);
+            category = categories.save(category);
+        }
+        return category;
     }
 
     @PutMapping("/categories/{id}")
-    Category updateCategory(@PathVariable Long id, @Valid @RequestBody Category request) {
+    @Transactional
+    Category updateCategory(@PathVariable Long id, @Valid @RequestBody CategoryRequest request) {
         Category category = categories.findById(id).orElseThrow(() -> notFound("Không tìm thấy danh mục"));
-        category.setName(request.getName());
-        category.setSlug(request.getSlug());
-        category.setImage(request.getImage());
-        category.setActive(request.isActive());
+        applyCategory(category, request);
         return categories.save(category);
     }
 
     @DeleteMapping("/categories/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Transactional
     void deleteCategory(@PathVariable Long id) {
-        if (!categories.existsById(id)) throw notFound("Không tìm thấy danh mục");
+        Category category = categories.findById(id).orElseThrow(() -> notFound("Không tìm thấy danh mục"));
         if (products.countByCategoryId(id) > 0) {
             throw new IllegalArgumentException("Không thể xóa danh mục đang có sản phẩm");
         }
+        if (!category.getChildren().isEmpty()) {
+            throw new IllegalArgumentException("Không thể xóa danh mục đang có danh mục con");
+        }
+        // Xóa quan hệ cha trước khi xóa
+        category.getParents().clear();
+        categories.save(category);
         categories.deleteById(id);
+    }
+
+    /** Lưu thứ tự kéo thả: nhận list [{id, sortOrder, parentId?}]
+     *  parentId = null → danh mục gốc; parentId = Long → danh mục con */
+    @PutMapping("/categories/reorder")
+    @Transactional
+    List<Category> reorderCategories(@RequestBody List<Map<String, Object>> items) {
+        // Bước 1: Cập nhật sortOrder và parent cho từng item
+        for (Map<String, Object> entry : items) {
+            Long id = Long.valueOf(entry.get("id").toString());
+            Integer sortOrder = entry.get("sortOrder") != null ? Integer.valueOf(entry.get("sortOrder").toString()) : 0;
+            Long parentId = entry.get("parentId") != null ? Long.valueOf(entry.get("parentId").toString()) : null;
+
+            categories.findById(id).ifPresent(cat -> {
+                cat.setSortOrder(sortOrder);
+                // Cập nhật quan hệ cha
+                cat.getParents().clear();
+                if (parentId != null) {
+                    categories.findById(parentId).ifPresent(parent -> {
+                        if (!parent.getId().equals(cat.getId())) { // tránh tự làm cha của mình
+                            cat.getParents().add(parent);
+                        }
+                    });
+                }
+                categories.save(cat);
+            });
+        }
+        return categories.findAllByOrderBySortOrderAscNameAsc();
     }
 
     // --- BRANDS ---
@@ -455,6 +508,21 @@ public class AdminController {
         }
         product.setCategory(request.categoryId() == null ? null : categories.findById(request.categoryId())
                 .orElseThrow(() -> notFound("Không tìm thấy danh mục")));
+    }
+
+    private void applyCategory(Category category, CategoryRequest request) {
+        category.setName(request.name().trim());
+        category.setSlug(request.slug().trim());
+        category.setImage(blankToNull(request.image()));
+        category.setActive(request.active());
+        // Xử lý quan hệ cha: xóa cha cũ rồi gán cha mới
+        category.getParents().clear();
+        if (request.parentIds() != null && !request.parentIds().isEmpty()) {
+            java.util.Set<Category> parentSet = new java.util.HashSet<>(categories.findAllById(request.parentIds()));
+            // Ngăn vòng tham chiếu: không cho category làm cha của chính nó
+            if (category.getId() != null) parentSet.removeIf(p -> p.getId().equals(category.getId()));
+            category.setParents(parentSet);
+        }
     }
 
     private void applyBanner(Banner banner, BannerRequest request) {

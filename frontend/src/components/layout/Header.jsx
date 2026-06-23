@@ -144,19 +144,38 @@ export default function Header() {
       {/* Navigation Bar */}
       <nav className="header-nav">
         <div className="container">
-          <div className="nav-category">
-            <button className="nav-category-btn">
+          <div className={`nav-category ${isActive('/') ? 'always-open' : ''}`}>
+            <button className="nav-category-btn" onClick={() => !isActive('/') && document.querySelector('.nav-category').classList.toggle('force-open')}>
               <Menu size={18} />
               Danh mục sản phẩm
             </button>
             <div className="nav-category-dropdown">
-              {categories.map((cat) => (
-                <Link key={cat.id} to={`/products?category=${cat.slug}`}>
-                  <Smartphone size={16} />
-                  {cat.name}
-                  <ChevronRight size={14} style={{ marginLeft: 'auto' }} />
-                </Link>
-              ))}
+              {(() => {
+                const renderCategoryMenu = (items) => {
+                  if (!items || items.length === 0) return null;
+                  return (
+                    <>
+                      {items.map((cat) => (
+                        <div key={cat.id} className="nav-category-item">
+                          <Link to={`/products?category=${cat.slug}`}>
+                            <Smartphone size={16} />
+                            {cat.name}
+                            {cat.children && cat.children.length > 0 && (
+                              <ChevronRight size={14} style={{ marginLeft: 'auto' }} />
+                            )}
+                          </Link>
+                          {cat.children && cat.children.length > 0 && (
+                            <div className="nav-category-sub">
+                              {renderCategoryMenu(cat.children)}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </>
+                  );
+                };
+                return renderCategoryMenu(categories);
+              })()}
             </div>
           </div>
 
@@ -184,11 +203,23 @@ export default function Header() {
           ))}
           <Link to="/cart">Giỏ hàng ({count})</Link>
           <div className="cat-label">Danh mục</div>
-          {categories.map((cat) => (
-            <Link key={cat.id} to={`/products?category=${cat.slug}`}>
-              {cat.name}
-            </Link>
-          ))}
+          {(() => {
+            const renderMobileCats = (items, level = 0) => {
+              if (!items || items.length === 0) return null;
+              return items.map((cat) => (
+                <React.Fragment key={cat.id}>
+                  <Link 
+                    to={`/products?category=${cat.slug}`}
+                    style={{ paddingLeft: `${level * 16 + 14}px`, fontSize: level > 0 ? '13.5px' : '14.5px', fontWeight: level > 0 ? '500' : '600' }}
+                  >
+                    {level > 0 ? '└ ' : ''}{cat.name}
+                  </Link>
+                  {cat.children && cat.children.length > 0 && renderMobileCats(cat.children, level + 1)}
+                </React.Fragment>
+              ));
+            };
+            return renderMobileCats(categories);
+          })()}
           <div className="cat-label">Hỗ trợ</div>
           <Link to="/warranty">Chính sách bảo hành</Link>
           <Link to="/installment">Mua trả góp 0%</Link>

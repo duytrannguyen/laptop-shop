@@ -4,7 +4,7 @@ import { Search, SlidersHorizontal } from 'lucide-react';
 import { http } from '../../api/client';
 import ProductCard from '../../components/specific/ProductCard';
 
-const brands = ['Tất cả', 'Dell', 'HP', 'ASUS', 'Lenovo', 'Acer', 'MSI', 'Apple'];
+// Brands will be fetched dynamically from API
 const priceRanges = [
   { label: 'Tất cả', min: 0, max: Infinity },
   { label: 'Dưới 10 triệu', min: 0, max: 10000000 },
@@ -24,6 +24,7 @@ const sortOptions = [
 export default function ProductsPage() {
   const [searchParams] = useSearchParams();
   const [allProducts, setAllProducts] = useState([]);
+  const [brandsList, setBrandsList] = useState([]);
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [selectedBrand, setSelectedBrand] = useState('Tất cả');
   const [selectedPrice, setSelectedPrice] = useState(0);
@@ -36,6 +37,12 @@ export default function ProductsPage() {
   const queryParam = searchParams.get('q');
 
   useEffect(() => {
+    // Fetch brands
+    http.get('/brands')
+      .then((r) => setBrandsList(r.data.map(b => b.name)))
+      .catch(() => {});
+
+    // Fetch products
     const url = category ? `/products?category=${category}` : '/products';
     setLoading(true);
     setError('');
@@ -53,13 +60,13 @@ export default function ProductsPage() {
   let filtered = allProducts.filter((p) => {
     // Search
     const q = searchQuery.toLowerCase();
-    if (q && !p.name.toLowerCase().includes(q) &&
-        !p.brand?.toLowerCase().includes(q) &&
-        !p.cpu?.toLowerCase().includes(q)) {
+    if (q && !p.name?.toLowerCase()?.includes(q) &&
+        !p.brand?.name?.toLowerCase()?.includes(q) &&
+        !p.cpu?.toLowerCase()?.includes(q)) {
       return false;
     }
     // Brand
-    if (selectedBrand !== 'Tất cả' && p.brand?.toLowerCase() !== selectedBrand.toLowerCase()) {
+    if (selectedBrand !== 'Tất cả' && p.brand?.name?.toLowerCase() !== selectedBrand?.toLowerCase()) {
       return false;
     }
     // Price range
@@ -78,7 +85,7 @@ export default function ProductsPage() {
     switch (sortBy) {
       case 'price-asc': return pa - pb;
       case 'price-desc': return pb - pa;
-      case 'name-asc': return a.name.localeCompare(b.name);
+      case 'name-asc': return (a.name || '').localeCompare(b.name || '');
       default: return (b.id || 0) - (a.id || 0);
     }
   });
@@ -141,12 +148,11 @@ export default function ProductsPage() {
           {/* Brand Filter */}
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
             <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-secondary)' }}>Thương hiệu:</span>
-            {brands.map((b) => (
+            {['Tất cả', ...brandsList].map((b) => (
               <button
                 key={b}
-                className={`btn btn-sm ${selectedBrand === b ? 'btn-primary' : 'btn-outline'}`}
+                className={`cat-tag ${selectedBrand === b ? 'active' : ''}`}
                 onClick={() => setSelectedBrand(b)}
-                style={{ padding: '6px 14px', fontSize: '13px' }}
               >
                 {b}
               </button>
@@ -159,9 +165,8 @@ export default function ProductsPage() {
           {priceRanges.map((r, i) => (
             <button
               key={i}
-              className={`btn btn-sm ${selectedPrice === i ? 'btn-primary' : 'btn-outline'}`}
+              className={`cat-tag ${selectedPrice === i ? 'active' : ''}`}
               onClick={() => setSelectedPrice(i)}
-              style={{ padding: '6px 14px', fontSize: '13px' }}
             >
               {r.label}
             </button>

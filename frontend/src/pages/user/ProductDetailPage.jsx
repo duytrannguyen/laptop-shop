@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, Navigate } from 'react-router-dom';
 import { ShoppingCart, CreditCard, ChevronRight, Phone, CheckCircle2, Gift, ChevronLeft } from 'lucide-react';
 import { http } from '../../api/client';
 import { useCart } from '../../context/CartContext';
@@ -45,7 +45,7 @@ export default function ProductDetailPage() {
   }, [product]);
 
   if (error) {
-    return <main className="page-content"><div className="container empty-state"><h2>{error}</h2><Link className="btn btn-primary" to="/products">Xem sản phẩm khác</Link></div></main>;
+    return <Navigate to="/not-found" replace />;
   }
 
   if (!product) {

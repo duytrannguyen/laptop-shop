@@ -37,7 +37,14 @@ public class PublicController {
 
     @GetMapping("/categories")
     List<Category> categories() {
-        return categories.findByActiveTrueOrderByNameAsc();
+        // Trả về cây danh mục: danh mục gốc kèm children
+        return categories.findActiveRootCategories();
+    }
+
+    @GetMapping("/categories/all")
+    List<Category> categoriesAll() {
+        // Trả về tất cả danh mục (flat list) cho trường hợp cần filter
+        return categories.findByActiveTrueOrderBySortOrderAscNameAsc();
     }
 
     @GetMapping("/brands")

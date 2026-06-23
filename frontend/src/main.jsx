@@ -23,6 +23,7 @@ import WarrantyPage from './pages/user/WarrantyPage';
 import InstallmentPage from './pages/user/InstallmentPage';
 import FAQPage from './pages/user/FAQPage';
 import OrderTrackingPage from './pages/user/OrderTrackingPage';
+import NotFoundPage from './pages/user/NotFoundPage';
 
 // Admin pages
 import AdminLogin from './pages/auth/AdminLogin';
@@ -69,6 +70,8 @@ function App() {
                   <Route path="/installment" element={<InstallmentPage />} />
                   <Route path="/faq" element={<FAQPage />} />
                   <Route path="/order-tracking" element={<OrderTrackingPage />} />
+                  <Route path="/not-found" element={<NotFoundPage />} />
+                  <Route path="*" element={<NotFoundPage />} />
                 </Route>
 
                 {/* ========== ADMIN ROUTES ========== */}
@@ -97,7 +100,7 @@ function App() {
                 </Route>
 
                 {/* ========== FALLBACK ========== */}
-                <Route path="*" element={<Navigate to="/" replace />} />
+                {/* Fallback is handled by the * route inside UserLayout */}
               </Routes>
               <BackToTop />
             </ToastProvider>

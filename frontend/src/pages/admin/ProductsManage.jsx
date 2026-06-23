@@ -111,7 +111,8 @@ export default function ProductsManage() {
 
   useEffect(() => {
     load();
-    http.get('/admin/categories').then((r) => setCategories(r.data)).catch(() => {});
+    // Lấy cây danh mục (root + children) cho product form
+    http.get('/admin/categories/tree').then((r) => setCategories(r.data)).catch(() => {});
     http.get('/admin/brands').then((r) => setBrands(r.data)).catch(() => {});
     http.get('/admin/product-groups').then((r) => setProductGroups(r.data)).catch(() => {});
     http.get('/admin/needs').then((r) => setNeeds(r.data)).catch(() => {});
@@ -900,21 +901,37 @@ export default function ProductsManage() {
             {/* ---- RIGHT COLUMN ---- */}
             <div className="admin-form-right">
 
-              {/* Categories */}
+              {/* Categories - nested tree */}
               <div className="admin-form-section">
                 <h3 className="admin-form-section-title">Danh mục sản phẩm</h3>
                 <div className="category-checkbox-list">
-                  {categories.length > 0 ? categories.map((cat) => (
-                    <label className={`category-checkbox-item ${form.categoryId == cat.id ? 'active' : ''}`} key={cat.id}>
-                      <input
-                        type="radio"
-                        name="categoryId"
-                        checked={form.categoryId == cat.id}
-                        onChange={() => setForm({ ...form, categoryId: cat.id })}
-                      />
-                      <span>{cat.name}</span>
-                    </label>
-                  )) : (
+                  {categories.length > 0 ? (() => {
+                    const renderTree = (nodes, level = 0) => {
+                      let rendered = [];
+                      nodes.forEach(node => {
+                        const isSelected = form.categoryId == node.id;
+                        rendered.push(
+                          <label key={node.id} className={`category-checkbox-item ${isSelected ? 'active' : ''}`}
+                            style={{ 
+                              paddingLeft: level > 0 ? `${level * 20 + 8}px` : '12px',
+                              fontWeight: level === 0 ? '700' : 'normal',
+                              background: isSelected ? 'var(--primary)' : (level === 0 ? 'rgba(var(--primary-rgb,27,59,90),0.04)' : 'transparent'),
+                              borderLeft: level === 0 ? '3px solid var(--primary)' : 'none',
+                              fontSize: level > 0 ? '13px' : '14px',
+                              display: 'flex', alignItems: 'center', gap: '8px'
+                            }}>
+                            <input type="radio" name="categoryId" checked={isSelected} onChange={() => setForm({ ...form, categoryId: node.id })} />
+                            <span>{level === 0 ? '📁' : '└'} {node.name}</span>
+                          </label>
+                        );
+                        if (node.children && node.children.length > 0) {
+                          rendered.push(...renderTree(node.children, level + 1));
+                        }
+                      });
+                      return rendered;
+                    };
+                    return renderTree(categories);
+                  })() : (
                     <p style={{ fontSize: '13px', color: 'var(--text-muted)', padding: '8px 0' }}>
                       Chưa có danh mục. Vui lòng tạo danh mục trước.
                     </p>
@@ -1073,7 +1090,19 @@ export default function ProductsManage() {
             <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', color: '#666' }}>Danh mục sản phẩm</label>
             <select className="form-input" style={{ width: '220px', padding: '6px 12px' }} value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
               <option value="">Tất cả danh mục</option>
-              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              {/* Nhóm theo danh mục cha */}
+              {categories.filter(c => c.children && c.children.length > 0).map(parent => (
+                <optgroup key={parent.id} label={`📁 ${parent.name}`}>
+                  <option value={parent.id}>{parent.name} (tất cả)</option>
+                  {parent.children.map(child => (
+                    <option key={child.id} value={child.id}>└ {child.name}</option>
+                  ))}
+                </optgroup>
+              ))}
+              {/* Danh mục không có cha */}
+              {categories.filter(c => !categories.some(p => p.children && p.children.some(ch => ch.id === c.id)) && !(c.children && c.children.length > 0)).map(c => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
             </select>
           </div>
           <div>
