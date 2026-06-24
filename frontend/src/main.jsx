@@ -4,41 +4,44 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { SiteProvider } from './context/SiteContext';
-import { ToastProvider } from './components/ToastContext';
-import ScrollToTop from './components/ScrollToTop';
-import BackToTop from './components/BackToTop';
+import { ToastProvider } from './context/ToastContext';
+import ScrollToTop from './components/common/ScrollToTop';
+import BackToTop from './components/common/BackToTop';
 
 // User pages
-import UserLayout from './user/UserLayout';
-import HomePage from './user/HomePage';
-import ProductsPage from './user/ProductsPage';
-import ProductDetailPage from './user/ProductDetailPage';
-import CartPage from './user/CartPage';
-import CheckoutPage from './user/CheckoutPage';
-import NewsPage from './user/NewsPage';
-import PostDetailPage from './user/PostDetailPage';
-import ContactPage from './user/ContactPage';
-import AboutPage from './user/AboutPage';
-import WarrantyPage from './user/WarrantyPage';
-import InstallmentPage from './user/InstallmentPage';
-import FAQPage from './user/FAQPage';
-import OrderTrackingPage from './user/OrderTrackingPage';
+import UserLayout from './components/layout/UserLayout';
+import HomePage from './pages/user/HomePage';
+import ProductsPage from './pages/user/ProductsPage';
+import ProductDetailPage from './pages/user/ProductDetailPage';
+import CartPage from './pages/user/CartPage';
+import CheckoutPage from './pages/user/CheckoutPage';
+import NewsPage from './pages/user/NewsPage';
+import PostDetailPage from './pages/user/PostDetailPage';
+import ContactPage from './pages/user/ContactPage';
+import AboutPage from './pages/user/AboutPage';
+import WarrantyPage from './pages/user/WarrantyPage';
+import InstallmentPage from './pages/user/InstallmentPage';
+import FAQPage from './pages/user/FAQPage';
+import OrderTrackingPage from './pages/user/OrderTrackingPage';
+import NotFoundPage from './pages/user/NotFoundPage';
 
 // Admin pages
-import AdminLogin from './admin/AdminLogin';
-import AdminLayout from './admin/AdminLayout';
-import DashboardPage from './admin/DashboardPage';
-import ProductsManage from './admin/ProductsManage';
-import CategoriesManage from './admin/CategoriesManage';
-import BrandsManage from './admin/BrandsManage';
-import ProductGroupsManage from './admin/ProductGroupsManage';
-import NeedsManage from './admin/NeedsManage';
-import PostsManage from './admin/PostsManage';
-import OrdersManage from './admin/OrdersManage';
-import SettingsPage from './admin/SettingsPage';
-import BannersManage from './admin/BannersManage';
-import MediaManage from './admin/MediaManage';
-import ContactsManage from './admin/ContactsManage';
+import AdminLogin from './pages/auth/AdminLogin';
+import AdminLayout from './components/layout/AdminLayout';
+import DashboardPage from './pages/admin/DashboardPage';
+import ProductsManage from './pages/admin/ProductsManage';
+import CategoriesManage from './pages/admin/CategoriesManage';
+import BrandsManage from './pages/admin/BrandsManage';
+import ProductGroupsManage from './pages/admin/ProductGroupsManage';
+import NeedsManage from './pages/admin/NeedsManage';
+import PostsManage from './pages/admin/PostsManage';
+import OrdersManage from './pages/admin/OrdersManage';
+import SettingsPage from './pages/admin/SettingsPage';
+import BannersManage from './pages/admin/BannersManage';
+import MediaManage from './pages/admin/MediaManage';
+import ContactsManage from './pages/admin/ContactsManage';
+import MenuManage from './pages/admin/MenuManage';
+import FooterManage from './pages/admin/FooterManage';
 
 import './styles/app.css';
 import './styles/toast.css';
@@ -67,6 +70,8 @@ function App() {
                   <Route path="/installment" element={<InstallmentPage />} />
                   <Route path="/faq" element={<FAQPage />} />
                   <Route path="/order-tracking" element={<OrderTrackingPage />} />
+                  <Route path="/not-found" element={<NotFoundPage />} />
+                  <Route path="*" element={<NotFoundPage />} />
                 </Route>
 
                 {/* ========== ADMIN ROUTES ========== */}
@@ -89,11 +94,13 @@ function App() {
                   <Route path="banners" element={<BannersManage />} />
                   <Route path="media" element={<MediaManage />} />
                   <Route path="contacts" element={<ContactsManage />} />
+                  <Route path="menu" element={<MenuManage />} />
+                  <Route path="footer" element={<FooterManage />} />
                   <Route path="settings" element={<SettingsPage />} />
                 </Route>
 
                 {/* ========== FALLBACK ========== */}
-                <Route path="*" element={<Navigate to="/" replace />} />
+                {/* Fallback is handled by the * route inside UserLayout */}
               </Routes>
               <BackToTop />
             </ToastProvider>

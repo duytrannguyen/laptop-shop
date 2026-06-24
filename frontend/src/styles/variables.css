@@ -1,13 +1,13 @@
-/* ===== Laptop Shop Design System Variables ===== */
+/* ===== Tech Shop Design System Variables ===== */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 :root {
   /* Primary Colors */
-  --primary: #d00016;
-  --primary-dark: #a80012;
-  --primary-light: #ff1a33;
-  --primary-bg: #fff4f4;
-  --primary-gradient: linear-gradient(135deg, #a80012 0%, #d00016 60%, #ff1a33 100%);
+  --primary: #2563eb;
+  --primary-dark: #1e40af;
+  --primary-light: #60a5fa;
+  --primary-bg: #eff6ff;
+  --primary-gradient: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%);
 
   /* Neutral Colors */
   --bg: #f4f5f9;
@@ -32,7 +32,7 @@
   --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.08);
   --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.15), 0 8px 24px rgba(0, 0, 0, 0.10);
   --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
-  --shadow-primary: 0 4px 16px rgba(208, 0, 22, 0.25);
+  --shadow-primary: 0 4px 16px rgba(37, 99, 235, 0.25);
 
   /* Border Radius */
   --radius-xs: 4px;
@@ -77,7 +77,7 @@
   /* Admin Sidebar */
   --sidebar-bg: #0f1117;
   --sidebar-bg-hover: rgba(255, 255, 255, 0.07);
-  --sidebar-active-bg: rgba(208, 0, 22, 0.85);
+  --sidebar-active-bg: rgba(37, 99, 235, 0.85);
   --sidebar-border: rgba(255, 255, 255, 0.06);
   --sidebar-text: rgba(255, 255, 255, 0.65);
   --sidebar-text-active: #ffffff;

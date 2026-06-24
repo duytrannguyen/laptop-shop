@@ -12,10 +12,10 @@
         },
         {
             "type": "java",
-            "name": "Spring Boot-LaptopshopApplication<laptop-shop-backend>",
+            "name": "Spring Boot-TechshopApplication<laptop-shop-backend>",
             "request": "launch",
             "cwd": "${workspaceFolder}",
-            "mainClass": "com.laptopshop.LaptopshopApplication",
+            "mainClass": "com.techshop.TechshopApplication",
             "projectName": "laptop-shop-backend",
             "args": "",
             "envFile": "${workspaceFolder}/.env"

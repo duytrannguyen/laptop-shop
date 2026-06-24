@@ -2,11 +2,11 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { http } from '../api/client';
 
 const DEFAULT_SETTINGS = {
-  storeName: 'Laptop Shop - Laptop cũ Cần Thơ',
-  shortName: 'Laptop Shop',
-  slogan: 'Laptop cũ chất lượng, giá minh bạch',
+  storeName: 'Tech Shop - Tech Shop Cần Thơ',
+  shortName: 'Tech Shop',
+  slogan: 'Sản phẩm công nghệ chất lượng, giá minh bạch',
   hotline: '0816109179',
-  email: 'contact@laptopshop.vn',
+  email: 'contact@techshop.vn',
   supportEmail: '',
   address: 'Số 25, đường B25, KDC 91B, P. An Khánh, Q. Ninh Kiều, TP. Cần Thơ',
   openingHours: '08:30 - 20:00 hàng ngày',

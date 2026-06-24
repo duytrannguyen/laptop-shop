@@ -1,4 +1,4 @@
-# Laptop Shop
+# Tech Shop
 
 Website bán laptop gồm React/Vite và Spring Boot 3 (JDK 21), có khu vực khách hàng và trang quản trị.
 
@@ -33,7 +33,7 @@ Backend: `http://localhost:8080`
 
 Tài khoản khởi tạo:
 
-- Email: `admin@laptopshop.vn`
+- Email: `admin@techshop.vn`
 - Mật khẩu: `123456`
 
 ## Cấu hình trước khi đưa lên mạng
@@ -53,8 +53,8 @@ Mặc định ứng dụng dùng H2 file, phù hợp website nhỏ một máy ch
 Để dùng MySQL:
 
 ```text
-DB_URL=jdbc:mysql://localhost:3306/laptopshop?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Ho_Chi_Minh
-DB_USERNAME=laptopshop
+DB_URL=jdbc:mysql://localhost:3306/techshop?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Ho_Chi_Minh
+DB_USERNAME=techshop
 DB_PASSWORD=mat-khau-database
 ```
 
@@ -81,6 +81,7 @@ cd backend
 mvn.cmd test
 
 cd ../frontend
+
 npm.cmd run build
 ```
 
