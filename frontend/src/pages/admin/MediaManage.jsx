@@ -4,7 +4,7 @@ import { Images, Plus, Trash2, Upload, Copy, Check, Folder, FolderOpen, Edit, Fi
 import { http } from '../../api/client';
 
 export default function MediaManage() {
-  const { showToast } = useToast();
+  const { showToast, confirm } = useToast();
   const [images, setImages] = useState([]);
   const [folders, setFolders] = useState([]);
   const [activeFolder, setActiveFolder] = useState('');
@@ -59,7 +59,7 @@ export default function MediaManage() {
   };
 
   const removeFile = async (url) => {
-    if (!window.confirm(`Bạn có chắc chắn muốn xóa file này không?`)) return;
+    if (!await confirm(`Bạn có chắc chắn muốn xóa file này không?`)) return;
     try {
       await http.delete(`/admin/uploads`, { params: { url } });
       await loadImages();

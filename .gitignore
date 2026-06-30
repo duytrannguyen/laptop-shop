@@ -11,6 +11,15 @@ backend/data/
 backend/uploads/
 backend/*.log
 
+# Demo / media
+*.mp4
+*.webp
+
+# One-time scripts
+rename.js
+rename_techshop.js
+update_frontend.js
+
 # IDE / OS
 .idea/
 .vscode/*.log

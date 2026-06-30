@@ -20,21 +20,45 @@ export const ToastProvider = ({ children }) => {
     setToasts(prev => prev.filter(t => t.id !== id));
   }, []);
 
+  const confirm = useCallback((message) => {
+    return new Promise((resolve) => {
+      const id = Date.now() + Math.random().toString(36).substring(2);
+      setToasts(prev => [...prev, { 
+        id, 
+        message, 
+        type: 'light', 
+        isConfirm: true,
+        onResolve: (val) => {
+          resolve(val);
+          setToasts(current => current.filter(t => t.id !== id));
+        }
+      }]);
+    });
+  }, []);
+
   return (
-    <ToastContext.Provider value={{ showToast }}>
+    <ToastContext.Provider value={{ showToast, confirm }}>
       {children}
       <div className="toast-container position-fixed bottom-0 end-0 p-3" style={{ zIndex: 9999 }}>
         {toasts.map(t => (
-          <div key={t.id} className={`toast show align-items-center text-bg-${t.type} border-0 mb-2`} role="alert" aria-live="assertive" aria-atomic="true">
+          <div key={t.id} className={`toast show align-items-center text-bg-${t.type} border-0 mb-2 shadow-lg`} role="alert" aria-live="assertive" aria-atomic="true">
             <div className="toast-header">
-              <strong className="me-auto text-primary">Thông báo</strong>
+              <strong className="me-auto text-primary">{t.isConfirm ? 'Xác nhận' : 'Thông báo'}</strong>
               <small className="text-muted">vừa xong</small>
-              <button type="button" className="btn-close" onClick={() => removeToast(t.id)}>
-                <X size={16} />
-              </button>
+              {!t.isConfirm && (
+                <button type="button" className="btn-close" onClick={() => removeToast(t.id)}>
+                  <X size={16} />
+                </button>
+              )}
             </div>
             <div className="toast-body">
               {t.message}
+              {t.isConfirm && (
+                <div className="mt-3 d-flex justify-content-end gap-2">
+                  <button className="btn btn-sm btn-secondary" onClick={() => t.onResolve(false)}>Hủy</button>
+                  <button className="btn btn-sm btn-danger" onClick={() => t.onResolve(true)}>OK</button>
+                </div>
+              )}
             </div>
           </div>
         ))}

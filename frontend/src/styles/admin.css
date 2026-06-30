@@ -2965,7 +2965,7 @@ input:checked + .toggle-slider:before {
   padding: 12px 16px;
   border-bottom: 1px solid var(--border-light);
   transition: background var(--transition-fast);
-  cursor: grab;
+  cursor: pointer;
   gap: 8px;
 }
 
@@ -2974,7 +2974,7 @@ input:checked + .toggle-slider:before {
 }
 
 .tree-row:hover {
-  background: #f8f9ff;
+  background: #eff6ff;
 }
 
 .tree-row-child {
@@ -2982,7 +2982,7 @@ input:checked + .toggle-slider:before {
 }
 
 .tree-row-child:hover {
-  background: #f0f4ff;
+  background: #eff6ff;
 }
 
 .tree-row-dragging {

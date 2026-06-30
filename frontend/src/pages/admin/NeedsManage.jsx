@@ -12,7 +12,7 @@ function toSlug(str) {
 }
 
 export default function NeedsManage() {
-  const { showToast } = useToast();
+  const { showToast, confirm } = useToast();
   const [data, setData] = useState([]);
   const [modal, setModal] = useState(false);
   const [form, setForm] = useState(EMPTY);
@@ -51,7 +51,7 @@ export default function NeedsManage() {
   };
 
   const handleDelete = async (id, name) => {
-    if (!window.confirm(`Xác nhận xóa nhu cầu "${name}"?`)) return;
+    if (!await confirm(`Xác nhận xóa nhu cầu "${name}"?`)) return;
     try {
       await http.delete(`/admin/needs/${id}`);
       load();

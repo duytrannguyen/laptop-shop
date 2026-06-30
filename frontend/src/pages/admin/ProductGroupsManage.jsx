@@ -12,7 +12,7 @@ function toSlug(str) {
 }
 
 export default function ProductGroupsManage() {
-  const { showToast } = useToast();
+  const { showToast, confirm } = useToast();
   const [data, setData] = useState([]);
   const [modal, setModal] = useState(false);
   const [form, setForm] = useState(EMPTY);
@@ -51,7 +51,7 @@ export default function ProductGroupsManage() {
   };
 
   const handleDelete = async (id, name) => {
-    if (!window.confirm(`Xác nhận xóa nhóm sản phẩm "${name}"?`)) return;
+    if (!await confirm(`Xác nhận xóa nhóm sản phẩm "${name}"?`)) return;
     try {
       await http.delete(`/admin/product-groups/${id}`);
       load();

@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import { http } from '../../api/client';
 import { useSite } from '../../context/SiteContext';
+import { useToast } from '../../context/ToastContext';
 
 const POSITIONS = [
   { id: 'bottom-right', label: 'Dưới phải' },
@@ -23,6 +24,7 @@ const RATIOS = [
 
 export default function ImageTool({ form, setForm }) {
   const { settings } = useSite();
+  const { showToast } = useToast();
 
   /* Frame state */
   const [frameSrc, setFrameSrc] = useState(form?.frameUrl || null);
@@ -75,9 +77,8 @@ export default function ImageTool({ form, setForm }) {
       const res = await http.post('/admin/uploads', fd, { params: { folder: 'frame' } });
       const url = res.data.url || res.data;
       setFrameSrc(url);
-    } catch (err) {
-      console.error(err);
-      alert('Lỗi upload khung');
+    } catch {
+      showToast('Lỗi upload khung');
     }
     if (frameRef.current) frameRef.current.value = '';
   };
@@ -90,9 +91,8 @@ export default function ImageTool({ form, setForm }) {
       const res = await http.post('/admin/uploads', fd, { params: { folder: 'logo' } });
       const url = res.data.url || res.data;
       setLogoSrc(url);
-    } catch (err) {
-      console.error(err);
-      alert('Lỗi upload logo');
+    } catch {
+      showToast('Lỗi upload logo');
     }
     if (logoRef.current) logoRef.current.value = '';
   };

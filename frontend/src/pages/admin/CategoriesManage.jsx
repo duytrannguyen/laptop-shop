@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useToast } from '../../context/ToastContext';
-import { FolderTree, Plus, X, Edit2, Trash2, FolderOpen, Tag, GripVertical, Folder, FolderPlus } from 'lucide-react';
+import { FolderTree, Plus, X, Edit2, Trash2, FolderOpen, Tag, GripVertical, Folder, FolderPlus, ChevronDown, ChevronRight } from 'lucide-react';
 import { http } from '../../api/client';
 
 /* ──────────────────────────────────────────────
@@ -96,9 +96,10 @@ function ParentSelector({ value, onChange, allItems, excludeId }) {
    MAIN COMPONENT
 ────────────────────────────────────────────── */
 export default function CategoriesManage() {
-  const { showToast } = useToast();
+  const { showToast, confirm } = useToast();
   const [flat, setFlat] = useState([]);   // flat display list
   const [allCats, setAllCats] = useState([]); // for parent selector
+  const [expandedIds, setExpandedIds] = useState([]); // Array of expanded item ids
   const [modal, setModal] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [editId, setEditId] = useState(null);
@@ -152,7 +153,7 @@ export default function CategoriesManage() {
   };
 
   const handleDelete = async (id, name) => {
-    if (!window.confirm(`Xác nhận xóa danh mục "${name}"?`)) return;
+    if (!await confirm(`Xác nhận xóa danh mục "${name}"?`)) return;
     try {
       await http.delete(`/admin/categories/${id}`);
       showToast('Đã xóa danh mục');
@@ -281,10 +282,28 @@ export default function CategoriesManage() {
         <div ref={containerRef} style={{ padding: '6px 0', minHeight: '120px' }}>
           {flat.length === 0
             ? <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>Chưa có danh mục nào</div>
-            : flat.map((item, idx) => {
-              const isRoot = item._level === 0;
-              const isDragging = draggingIdx.current === idx;
-              const showDropAbove = dropIndicator?.afterIdx === idx;
+            : (() => {
+                let hideUntilLevel = null;
+                return flat.map((item, idx) => {
+                  if (hideUntilLevel !== null) {
+                    if (item._level <= hideUntilLevel) {
+                      hideUntilLevel = null;
+                    } else {
+                      return null; // hide child
+                    }
+                  }
+
+                  const nextItem = flat[idx + 1];
+                  const hasChildren = nextItem && nextItem._level > item._level;
+                  const isCollapsed = !expandedIds.includes(item.id);
+
+                  if (hasChildren && isCollapsed) {
+                    hideUntilLevel = item._level;
+                  }
+
+                  const isRoot = item._level === 0;
+                  const isDragging = draggingIdx.current === idx;
+                  const showDropAbove = dropIndicator?.afterIdx === idx;
 
               return (
                 <React.Fragment key={item.id}>
@@ -325,6 +344,27 @@ export default function CategoriesManage() {
                   >
                     {/* Drag handle */}
                     <GripVertical size={16} style={{ color: '#bbb', flexShrink: 0, cursor: 'grab' }} />
+
+                    {/* Expand/Collapse Toggle */}
+                    <div 
+                      onClick={(e) => {
+                        if (hasChildren) {
+                          e.stopPropagation();
+                          setExpandedIds(prev => prev.includes(item.id) ? prev.filter(id => id !== item.id) : [...prev, item.id]);
+                        }
+                      }}
+                      style={{ 
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                        width: '20px', height: '20px', cursor: hasChildren ? 'pointer' : 'default', 
+                        flexShrink: 0 
+                      }}
+                    >
+                      {hasChildren ? (
+                        isCollapsed ? <ChevronRight size={16} style={{ color: 'var(--text-secondary)' }} /> : <ChevronDown size={16} style={{ color: 'var(--text-secondary)' }} />
+                      ) : (
+                        <div style={{ width: '16px' }} />
+                      )}
+                    </div>
 
                     {/* Icon */}
                     {isRoot
@@ -374,7 +414,7 @@ export default function CategoriesManage() {
 
                 </React.Fragment>
               );
-            })}
+            })})()}
 
           {/* Drop indicator cuối danh sách */}
           {dropIndicator?.afterIdx === flat.length && (

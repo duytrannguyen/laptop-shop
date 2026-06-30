@@ -3,6 +3,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { http } from '../../api/client';
 import ProductCard from '../../components/specific/ProductCard';
+import { useSite } from '../../context/SiteContext';
 
 // Brands will be fetched dynamically from API
 const priceRanges = [
@@ -32,6 +33,9 @@ export default function ProductsPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const { settings } = useSite();
+  const productsPerPage = parseInt(settings?.productsPerPage) || 10;
 
   const category = searchParams.get('category');
   const queryParam = searchParams.get('q');
@@ -55,6 +59,10 @@ export default function ProductsPage() {
   useEffect(() => {
     setSearchQuery(queryParam || '');
   }, [queryParam]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedBrand, selectedPrice, sortBy, category]);
 
   // Filter and sort
   let filtered = allProducts.filter((p) => {
@@ -89,6 +97,11 @@ export default function ProductsPage() {
       default: return (b.id || 0) - (a.id || 0);
     }
   });
+
+  const totalPages = Math.ceil(filtered.length / productsPerPage) || 1;
+  const validPage = Math.min(currentPage, totalPages);
+  const startIndex = (validPage - 1) * productsPerPage;
+  const paginatedProducts = filtered.slice(startIndex, startIndex + productsPerPage);
 
   return (
     <main className="page-content">
@@ -182,12 +195,67 @@ export default function ProductsPage() {
           <div className="loading"><div className="spinner" /></div>
         ) : error ? (
           <div className="empty-state"><h3>{error}</h3></div>
-        ) : filtered.length > 0 ? (
-          <div className="products-grid">
-            {filtered.map((p) => (
-              <ProductCard product={p} key={p.id} />
-            ))}
-          </div>
+        ) : paginatedProducts.length > 0 ? (
+          <>
+            <div className="products-grid">
+              {paginatedProducts.map((p) => (
+                <ProductCard product={p} key={p.id} />
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px', marginTop: '40px', paddingBottom: '40px' }}>
+                <button 
+                  className="btn btn-outline btn-sm" 
+                  disabled={currentPage === 1} 
+                  onClick={() => {
+                    setCurrentPage(prev => Math.max(prev - 1, 1));
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  style={{ padding: '6px 12px', minWidth: '100px' }}
+                >
+                  Trang trước
+                </button>
+                
+                <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      className={`btn btn-sm ${currentPage === page ? 'btn-primary' : 'btn-outline'}`}
+                      onClick={() => {
+                        setCurrentPage(page);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      style={{ 
+                        width: '36px', 
+                        height: '36px', 
+                        padding: 0, 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center',
+                        fontWeight: currentPage === page ? 'bold' : 'normal'
+                      }}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+
+                <button 
+                  className="btn btn-outline btn-sm" 
+                  disabled={currentPage === totalPages} 
+                  onClick={() => {
+                    setCurrentPage(prev => Math.min(prev - 1 + 2, totalPages));
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  style={{ padding: '6px 12px', minWidth: '100px' }}
+                >
+                  Trang sau
+                </button>
+              </div>
+            )}
+          </>
         ) : (
           <div className="empty-state">
             <Search size={48} />

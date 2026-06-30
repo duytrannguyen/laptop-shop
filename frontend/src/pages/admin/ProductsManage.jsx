@@ -45,7 +45,7 @@ const EMPTY_PRODUCT = {
 
 
 export default function ProductsManage() {
-  const { showToast } = useToast();
+  const { showToast, confirm } = useToast();
   const { settings } = useSite();
   const [view, setView] = useState('list');
   const [products, setProducts] = useState([]);
@@ -56,7 +56,9 @@ export default function ProductsManage() {
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
-  const [pageSize, setPageSize] = useState(50);
+  const [pageSize, setPageSize] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [filtered, setFiltered] = useState([]);
   const [form, setForm] = useState(EMPTY_PRODUCT);
   const [editId, setEditId] = useState(null);
@@ -129,6 +131,10 @@ export default function ProductsManage() {
   }, []);
 
   useEffect(() => {
+    setCurrentPage(1);
+  }, [search, filterCategory, filterStatus, pageSize]);
+
+  useEffect(() => {
     let res = products;
     if (filterCategory) {
       res = res.filter(p => p.category?.id?.toString() === filterCategory.toString());
@@ -143,8 +149,16 @@ export default function ProductsManage() {
       const q = search.toLowerCase();
       res = res.filter((p) => p.name.toLowerCase().includes(q) || p.slug.toLowerCase().includes(q));
     }
-    setFiltered(res.slice(0, pageSize));
-  }, [products, search, filterCategory, filterStatus, pageSize]);
+    
+    const total = Math.ceil(res.length / pageSize);
+    setTotalPages(total > 0 ? total : 1);
+    
+    let validPage = currentPage;
+    if (validPage > total) validPage = total > 0 ? total : 1;
+    
+    const start = (validPage - 1) * pageSize;
+    setFiltered(res.slice(start, start + pageSize));
+  }, [products, search, filterCategory, filterStatus, pageSize, currentPage]);
 
   const parseSpecsToHTML = (product) => {
     if (product.specs) {
@@ -338,7 +352,7 @@ export default function ProductsManage() {
   };
 
   const handleDelete = async (id, name) => {
-    if (!window.confirm(`Xác nhận xóa sản phẩm "${name}"?`)) return;
+    if (!await confirm(`Xác nhận xóa sản phẩm "${name}"?`)) return;
     try {
       await http.delete(`/admin/products/${id}`);
       load();
@@ -348,7 +362,7 @@ export default function ProductsManage() {
   };
 
   const handleDuplicate = async (p) => {
-    if (!window.confirm(`Xác nhận nhân bản sản phẩm "${p.name}"?`)) return;
+    if (!await confirm(`Xác nhận nhân bản sản phẩm "${p.name}"?`)) return;
     try {
       const newName = p.name + ' (Copy)';
       const finalSlug = toSlug(newName) + '-' + Date.now();
@@ -1222,6 +1236,50 @@ export default function ProductsManage() {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px', marginTop: '20px', paddingBottom: '20px' }}>
+          <button 
+            className="btn btn-outline btn-sm" 
+            disabled={currentPage === 1} 
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            style={{ padding: '6px 12px', minWidth: '100px' }}
+          >
+            Trang trước
+          </button>
+          
+          <div style={{ display: 'flex', gap: '5px' }}>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+              <button
+                key={page}
+                className={`btn btn-sm ${currentPage === page ? 'btn-primary' : 'btn-outline'}`}
+                onClick={() => setCurrentPage(page)}
+                style={{ 
+                  width: '32px', 
+                  height: '32px', 
+                  padding: 0, 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  fontWeight: currentPage === page ? 'bold' : 'normal'
+                }}
+              >
+                {page}
+              </button>
+            ))}
+          </div>
+
+          <button 
+            className="btn btn-outline btn-sm" 
+            disabled={currentPage === totalPages} 
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            style={{ padding: '6px 12px', minWidth: '100px' }}
+          >
+            Trang sau
+          </button>
+        </div>
+      )}
     </>
   );
 }
