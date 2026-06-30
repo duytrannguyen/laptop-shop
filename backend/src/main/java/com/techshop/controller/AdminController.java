@@ -33,6 +33,23 @@ public class AdminController {
     private final MenuItemRepository menuItems;
     private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
+    @org.springframework.beans.factory.annotation.Value("${app.upload-dir}")
+    private String uploadDirStr;
+
+    private void deleteImageFile(String url) {
+        if (url == null || url.isBlank() || !url.startsWith("/uploads/")) return;
+        try {
+            java.nio.file.Path uploadDir = java.nio.file.Path.of(uploadDirStr).toAbsolutePath().normalize();
+            String relativePath = url.substring("/uploads/".length());
+            java.nio.file.Path targetPath = uploadDir.resolve(relativePath).normalize();
+            if (targetPath.startsWith(uploadDir) && java.nio.file.Files.exists(targetPath)) {
+                java.nio.file.Files.delete(targetPath);
+            }
+        } catch (Exception e) {
+            // Ignore
+        }
+    }
+
     @GetMapping("/fix-db")
     public String fixDb() {
         try { jdbcTemplate.execute("ALTER TABLE product MODIFY COLUMN brand VARCHAR(100) NULL"); } catch(Exception e) {}
@@ -80,7 +97,18 @@ public class AdminController {
     @DeleteMapping("/products/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void deleteProduct(@PathVariable Long id) {
-        if (!products.existsById(id)) throw notFound("Không tìm thấy sản phẩm");
+        Product product = products.findById(id).orElseThrow(() -> notFound("Không tìm thấy sản phẩm"));
+        deleteImageFile(product.getImage());
+        deleteImageFile(product.getMetaImage());
+        if (product.getGallery() != null && !product.getGallery().isBlank()) {
+            try {
+                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                java.util.List<String> urls = mapper.readValue(product.getGallery(), new com.fasterxml.jackson.core.type.TypeReference<java.util.List<String>>() {});
+                if (urls != null) {
+                    for (String u : urls) deleteImageFile(u);
+                }
+            } catch (Exception e) {}
+        }
         products.deleteById(id);
     }
 
@@ -160,6 +188,7 @@ public class AdminController {
         // Xóa quan hệ cha trước khi xóa
         category.getParents().clear();
         categories.save(category);
+        deleteImageFile(category.getImage());
         categories.deleteById(id);
     }
 
@@ -217,7 +246,8 @@ public class AdminController {
     @DeleteMapping("/brands/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void deleteBrand(@PathVariable Long id) {
-        if (!brands.existsById(id)) throw notFound("Không tìm thấy thương hiệu");
+        Brand brand = brands.findById(id).orElseThrow(() -> notFound("Không tìm thấy thương hiệu"));
+        deleteImageFile(brand.getImage());
         brands.deleteById(id);
     }
 
@@ -247,7 +277,8 @@ public class AdminController {
     @DeleteMapping("/product-groups/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void deleteProductGroup(@PathVariable Long id) {
-        if (!productGroups.existsById(id)) throw notFound("Không tìm thấy nhóm sản phẩm");
+        ProductGroup group = productGroups.findById(id).orElseThrow(() -> notFound("Không tìm thấy nhóm sản phẩm"));
+        deleteImageFile(group.getImage());
         productGroups.deleteById(id);
     }
 
@@ -277,7 +308,8 @@ public class AdminController {
     @DeleteMapping("/needs/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void deleteNeed(@PathVariable Long id) {
-        if (!needs.existsById(id)) throw notFound("Không tìm thấy nhu cầu");
+        Need need = needs.findById(id).orElseThrow(() -> notFound("Không tìm thấy nhu cầu"));
+        deleteImageFile(need.getImage());
         needs.deleteById(id);
     }
 
@@ -308,7 +340,8 @@ public class AdminController {
     @DeleteMapping("/posts/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void deletePost(@PathVariable Long id) {
-        if (!posts.existsById(id)) throw notFound("Không tìm thấy bài viết");
+        Post post = posts.findById(id).orElseThrow(() -> notFound("Không tìm thấy bài viết"));
+        deleteImageFile(post.getImage());
         posts.deleteById(id);
     }
 
@@ -362,7 +395,8 @@ public class AdminController {
     @DeleteMapping("/banners/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void deleteBanner(@PathVariable Long id) {
-        if (!banners.existsById(id)) throw notFound("Không tìm thấy banner");
+        Banner banner = banners.findById(id).orElseThrow(() -> notFound("Không tìm thấy banner"));
+        deleteImageFile(banner.getImageUrl());
         banners.deleteById(id);
     }
 

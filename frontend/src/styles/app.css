@@ -54,10 +54,11 @@ button {
   outline: none;
 }
 
-input, textarea, select {
+input, textarea, select, [contenteditable="true"] {
   font-family: inherit;
   font-size: inherit;
   outline: none;
+  caret-color: #2563eb !important;
 }
 
 ul, ol {

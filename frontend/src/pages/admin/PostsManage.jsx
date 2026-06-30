@@ -6,7 +6,7 @@ import { http } from '../../api/client';
 const EMPTY = { title: '', slug: '', image: '', content: '', active: true };
 
 export default function PostsManage() {
-  const { showToast } = useToast();
+  const { showToast, confirm } = useToast();
   const [data, setData] = useState([]);
   const [modal, setModal] = useState(false);
   const [form, setForm] = useState(EMPTY);
@@ -49,7 +49,7 @@ export default function PostsManage() {
   };
 
   const handleDelete = async (id, title) => {
-    if (!window.confirm(`Xác nhận xóa bài viết "${title}"?`)) return;
+    if (!await confirm(`Xác nhận xóa bài viết "${title}"?`)) return;
     try {
       await http.delete(`/admin/posts/${id}`);
       load();

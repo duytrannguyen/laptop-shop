@@ -44,7 +44,7 @@ const GRADIENT_PRESETS = [
 ];
 
 export default function BannersManage() {
-  const { showToast } = useToast();
+  const { showToast, confirm } = useToast();
   const [activeTab, setActiveTab] = useState('SLIDER');
   const [allBanners, setAllBanners] = useState({ SLIDER: [], SIDEBAR: [], STRIP: [] });
   const [form, setForm] = useState(EMPTY_SLIDER);
@@ -145,7 +145,7 @@ export default function BannersManage() {
   };
 
   const remove = async (banner) => {
-    if (!window.confirm('Xóa banner này?')) return;
+    if (!await confirm('Xóa banner này?')) return;
     try {
       await http.delete(`/admin/banners/${banner.id}`);
       await load();

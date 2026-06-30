@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   GripVertical, Plus, Edit3, Trash2, X, Save,
-  Menu as MenuIcon, Link as LinkIcon, ChevronRight, FolderPlus
+  Menu as MenuIcon, Link as LinkIcon, ChevronRight, ChevronDown, FolderPlus
 } from 'lucide-react';
 import { http } from '../../api/client';
+import { useToast } from '../../context/ToastContext';
 
 /* ─────────── THIẾT LẬP MENU ─────────── */
 export default function MenuManage() {
@@ -44,8 +45,10 @@ function buildPayload(flat) {
 
 /* ─────────── Shared Tree Manager ─────────── */
 export function TreeManager({ type, title, icon, createLabel }) {
+  const { showToast, confirm } = useToast();
   const [flat, setFlat] = useState([]);          // display flat list with _level
   const [rawItems, setRawItems] = useState([]);   // original from server
+  const [expandedIds, setExpandedIds] = useState([]); // Array of expanded item ids
   const [modal, setModal] = useState(null);
   const [saving, setSaving] = useState(false);
   const [savingOrder, setSavingOrder] = useState(false);
@@ -95,7 +98,7 @@ export function TreeManager({ type, title, icon, createLabel }) {
       load();
       closeModal();
     } catch (err) {
-      alert(err.response?.data?.message || 'Lỗi lưu dữ liệu');
+      showToast(err.response?.data?.message || 'Lỗi lưu dữ liệu');
     } finally {
       setSaving(false);
     }
@@ -103,12 +106,12 @@ export function TreeManager({ type, title, icon, createLabel }) {
 
   /* ── Delete ── */
   const handleDelete = async id => {
-    if (!confirm('Bạn có chắc muốn xóa mục này? Các mục con cũng sẽ bị xóa.')) return;
+    if (!await confirm('Bạn có chắc muốn xóa mục này? Các mục con cũng sẽ bị xóa.')) return;
     try {
       await http.delete(`/admin/menu-items/${id}`);
       load();
     } catch (err) {
-      alert(err.response?.data?.message || 'Lỗi xóa');
+      showToast(err.response?.data?.message || 'Lỗi xóa');
     }
   };
 
@@ -166,7 +169,7 @@ export function TreeManager({ type, title, icon, createLabel }) {
       setRawItems(res.data);
       setFlat(flattenItems(res.data));
     } catch (err) {
-      alert('Lỗi cập nhật thứ tự');
+      showToast('Lỗi cập nhật thứ tự');
       load(); // rollback
     } finally {
       setSavingOrder(false);
@@ -226,13 +229,31 @@ export function TreeManager({ type, title, icon, createLabel }) {
               Chưa có mục nào. Nhấn "<strong>{createLabel}</strong>" để thêm mới.
             </div>
           ) : (
-            flat.map((item, idx) => {
-              const isRoot = item._level === 0;
-              const isDragging = draggingIdx.current === idx;
-              const showDrop = dropIndicator?.afterIdx === idx;
+            (() => {
+              let hideUntilLevel = null;
+              return flat.map((item, idx) => {
+                if (hideUntilLevel !== null) {
+                  if (item._level <= hideUntilLevel) {
+                    hideUntilLevel = null;
+                  } else {
+                    return null; // hide child
+                  }
+                }
 
-              return (
-                <React.Fragment key={item.id}>
+                const nextItem = flat[idx + 1];
+                const hasChildren = nextItem && nextItem._level > item._level;
+                const isCollapsed = !expandedIds.includes(item.id);
+
+                if (hasChildren && isCollapsed) {
+                  hideUntilLevel = item._level;
+                }
+
+                const isRoot = item._level === 0;
+                const isDragging = draggingIdx.current === idx;
+                const showDrop = dropIndicator?.afterIdx === idx;
+
+                return (
+                  <React.Fragment key={item.id}>
                   {/* Drop indicator line */}
                   {showDrop && (
                     <div style={{
@@ -258,6 +279,27 @@ export function TreeManager({ type, title, icon, createLabel }) {
                     {/* Left: handle + label */}
                     <div className="tree-row-left">
                       <span className="tree-drag-handle"><GripVertical size={16} /></span>
+
+                      {/* Expand/Collapse Toggle */}
+                      <div 
+                        onClick={(e) => {
+                          if (hasChildren) {
+                            e.stopPropagation();
+                            setExpandedIds(prev => prev.includes(item.id) ? prev.filter(id => id !== item.id) : [...prev, item.id]);
+                          }
+                        }}
+                        style={{ 
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                          width: '20px', height: '20px', cursor: hasChildren ? 'pointer' : 'default', 
+                          flexShrink: 0 
+                        }}
+                      >
+                        {hasChildren ? (
+                          isCollapsed ? <ChevronRight size={16} style={{ color: 'var(--text-secondary)' }} /> : <ChevronDown size={16} style={{ color: 'var(--text-secondary)' }} />
+                        ) : (
+                          <div style={{ width: '16px' }} />
+                        )}
+                      </div>
 
                       {/* Level indicator */}
                       {!isRoot && (
@@ -290,9 +332,10 @@ export function TreeManager({ type, title, icon, createLabel }) {
                       </button>
                     </div>
                   </div>
-                </React.Fragment>
-              );
-            })
+                  </React.Fragment>
+                );
+              })
+            })()
           )}
 
           {/* Drop zone cuối */}

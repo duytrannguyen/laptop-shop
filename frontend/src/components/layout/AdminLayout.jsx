@@ -42,7 +42,15 @@ export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [openMenus, setOpenMenus] = useState({ config: true, product: true });
+  const [openMenus, setOpenMenus] = useState(() => {
+    const initialState = { config: false, product: false };
+    navItems.forEach(item => {
+      if (item.subItems && item.subItems.some(sub => location.pathname === sub.to)) {
+        initialState[item.groupKey] = true;
+      }
+    });
+    return initialState;
+  });
 
   // Auth guard
   useEffect(() => {

@@ -27,6 +27,7 @@ const DEFAULT_SETTINGS = {
   popupEnabled: false,
   popupImageUrl: '',
   popupLinkUrl: '',
+  productsPerPage: 10,
 };
 
 const SiteContext = createContext({ settings: DEFAULT_SETTINGS, refresh: () => {} });

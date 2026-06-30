@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { MessageSquare, CheckCircle, Trash2 } from 'lucide-react';
 import { http } from '../../api/client';
+import { useToast } from '../../context/ToastContext';
 
 export default function ContactsManage() {
+  const { showToast, confirm } = useToast();
   const [messages, setMessages] = useState([]);
   const [selected, setSelected] = useState(null);
 
@@ -19,7 +21,7 @@ export default function ContactsManage() {
   };
 
   const remove = async (message) => {
-    if (!window.confirm(`Xóa tin nhắn của ${message.name}?`)) return;
+    if (!await confirm(`Xóa tin nhắn của ${message.name}?`)) return;
     await http.delete(`/admin/contacts/${message.id}`);
     setSelected(null);
     await load();
