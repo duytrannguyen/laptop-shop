@@ -2,7 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Smartphone, Shield, Truck, CreditCard, Headphones } from 'lucide-react';
 import { http } from '../../api/client';
-import ProductCard from '../../components/specific/ProductCard';
+import ProductCard from '../../components/product/ProductCard';
+import ProductSlider from '../../components/product/ProductSlider';
+import PopupBanner from '../../components/common/PopupBanner';
 import { useSite } from '../../context/SiteContext';
 
 const fmt = (n) => (n ? Number(n).toLocaleString('vi-VN') + ' đ' : 'LIÊN HỆ');
@@ -15,12 +17,6 @@ const fallbackSlides = [
     bg: 'linear-gradient(135deg, #9d0011 0%, #ed1c24 50%, #ff4444 100%)',
   },
   {
-    badge: 'KHUYẾN MÃI',
-    title: 'Trả góp 0% – Sở hữu sản phẩm chỉ từ 500K/tháng',
-    desc: 'Hỗ trợ trả góp qua thẻ tín dụng & công ty tài chính. Thủ tục nhanh gọn, duyệt trong 15 phút.',
-    bg: 'linear-gradient(135deg, #1e3a5f 0%, #2563eb 50%, #60a5fa 100%)',
-  },
-  {
     badge: 'THU CŨ ĐỔI MỚI',
     title: 'Mang máy cũ – Nhận giá cao, đổi máy mới ngay',
     desc: 'Thu mua thiết bị công nghệ giá cao nhất Cần Thơ. Định giá minh bạch, trả tiền ngay hoặc khấu trừ khi mua máy mới.',
@@ -29,7 +25,6 @@ const fallbackSlides = [
 ];
 
 const fallbackSidebar = [
-  { id: 's1', title: 'Trả góp 0%', description: 'Duyệt nhanh 15 phút, thủ tục đơn giản', linkUrl: '/installment', background: 'linear-gradient(145deg, #1e3a5f 0%, #1d4ed8 60%, #3b82f6 100%)' },
   { id: 's2', title: 'Freeship toàn quốc', description: 'Đóng gói cẩn thận, giao hàng nhanh chóng', linkUrl: '/products', background: 'linear-gradient(145deg, #064e3b 0%, #059669 60%, #10b981 100%)' },
 ];
 
@@ -79,6 +74,7 @@ export default function HomePage() {
 
   return (
     <main>
+      <PopupBanner />
       {/* Hero Section */}
       <div className="hero-section">
         <div className="container">
@@ -199,11 +195,12 @@ export default function HomePage() {
             <div className="hot-sale-header">
               <h2>🔥 HOT SALE GIAO TRONG NHÁY MẮT</h2>
             </div>
-            <div className="products-grid">
-              {featuredProducts.slice(0, 5).map((p) => (
-                <ProductCard product={p} key={p.id} />
-              ))}
-            </div>
+            <ProductSlider 
+              products={featuredProducts.slice(0, settings?.featuredDisplayCount || 10)}
+              displayType={settings?.featuredDisplayType || 'GRID'}
+              interval={settings?.featuredSliderInterval || 3000}
+              speed={settings?.featuredSliderSpeed || 500}
+            />
           </div>
         </section>
       )}
@@ -213,7 +210,7 @@ export default function HomePage() {
         // Find all product IDs for this category tree
         const getCatIds = (c) => [c.id, ...(c.children || []).flatMap(getCatIds)];
         const catIds = getCatIds(cat);
-        const catProducts = allProducts.filter(p => p.category && catIds.includes(p.category.id)).slice(0, 10);
+        const catProducts = allProducts.filter(p => p.category && catIds.includes(p.category.id)).slice(0, cat.displayCount || 10);
         
         if (catProducts.length === 0) return null;
 
@@ -233,11 +230,12 @@ export default function HomePage() {
                   </Link>
                 </div>
               </div>
-              <div className="products-grid">
-                {catProducts.map((p) => (
-                  <ProductCard product={p} key={p.id} />
-                ))}
-              </div>
+              <ProductSlider 
+                products={catProducts}
+                displayType={cat.displayType}
+                interval={cat.sliderInterval}
+                speed={cat.sliderSpeed}
+              />
             </div>
           </section>
         );
@@ -262,10 +260,10 @@ export default function HomePage() {
               </div>
             </div>
             <div className="policy-item">
-              <div className="policy-icon"><CreditCard size={24} /></div>
+              <div className="policy-icon"><Headphones size={24} /></div>
               <div className="policy-text">
-                <h4>Trả góp 0%</h4>
-                <p>Hỗ trợ trả góp qua thẻ & công ty TC</p>
+                <h4>Hỗ trợ nhiệt tình</h4>
+                <p>Luôn sẵn sàng giải đáp thắc mắc</p>
               </div>
             </div>
             <div className="policy-item">
@@ -279,32 +277,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* About Section */}
-      <section className="section" style={{ paddingTop: 0 }}>
-        <div className="container">
-          <div className="card" style={{ padding: '40px', textAlign: 'center' }}>
-            <h2 style={{ marginBottom: '16px' }}>{settings.shortName} - Chất lượng là uy tín</h2>
-            <p style={{ color: 'var(--text-secondary)', maxWidth: '700px', margin: '0 auto 24px', lineHeight: '1.7' }}>
-              Sản phẩm rõ nguồn gốc, đã được kiểm định kỹ càng. Giá cả minh bạch, bảo hành rõ ràng
-              và đội ngũ kỹ thuật tận tâm. Hỗ trợ thu cũ đổi mới với giá tốt nhất Cần Thơ.
-            </p>
-            <div className="stats-grid" style={{ maxWidth: '600px', margin: '0 auto' }}>
-              <div className="stat-card">
-                <div className="stat-number">50+</div>
-                <div className="stat-label">Sản phẩm</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-number">08:30-20:00</div>
-                <div className="stat-label">Giờ bán hàng</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-number">0%</div>
-                <div className="stat-label">Hỗ trợ trả góp</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+
     </main>
   );
 }

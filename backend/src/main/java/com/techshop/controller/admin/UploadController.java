@@ -1,4 +1,4 @@
-package com.techshop.controller;
+package com.techshop.controller.admin;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -9,6 +9,23 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 
+/**
+ * Controller quản lý upload ảnh (chỉ ADMIN mới truy cập được).
+ *
+ * Chức năng:
+ * - POST /api/admin/uploads           → Upload ảnh thông thường (cho sản phẩm, banner, ...)
+ * - POST /api/admin/uploads/ckeditor  → Upload ảnh từ CKEditor (format response khác)
+ * - GET  /api/admin/uploads           → Liệt kê toàn bộ file trong thư mục uploads
+ * - GET  /api/admin/uploads/folders   → Liệt kê các thư mục con
+ * - POST /api/admin/uploads/folders   → Tạo thư mục mới
+ * - PUT  /api/admin/uploads/rename    → Đổi tên file/thư mục
+ * - DELETE /api/admin/uploads         → Xóa file hoặc thư mục
+ *
+ * Bảo mật:
+ * - Chỉ chấp nhận ảnh (jpg, png, webp, gif), tối đa 5MB
+ * - Kiểm tra path traversal attack (tránh upload ra ngoài thư mục cho phép)
+ * - Tự động nén ảnh qua Thumbnailator (giới hạn 1920x1920, chất lượng 80%)
+ */
 @RestController
 @RequestMapping("/api/admin/uploads")
 public class UploadController {

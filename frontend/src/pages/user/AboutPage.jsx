@@ -1,8 +1,38 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight, Shield, Award, Users, Heart, CheckCircle, Smartphone } from 'lucide-react';
+import { http } from '../../api/client';
 
 export default function AboutPage() {
+  const [dynamicContent, setDynamicContent] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    http.get('/posts/about')
+      .then(res => setDynamicContent(res.data))
+      .catch(() => setDynamicContent(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <main className="page-content"><div className="loading"><div className="spinner" /></div></main>;
+
+  if (dynamicContent) {
+    return (
+      <main className="page-content">
+        <article className="container post-detail">
+          <div className="breadcrumb">
+            <Link to="/">Trang chủ</Link>
+            <ChevronRight size={14} className="separator" />
+            <span>{dynamicContent.title}</span>
+          </div>
+          <h1 style={{ textAlign: 'center', marginBottom: '24px' }}>{dynamicContent.title}</h1>
+          {dynamicContent.image && <img className="post-cover" src={dynamicContent.image} alt={dynamicContent.title} style={{ display: 'block', margin: '0 auto 32px', borderRadius: '12px' }} />}
+          <div className="post-content ck-content" dangerouslySetInnerHTML={{ __html: dynamicContent.content }} />
+        </article>
+      </main>
+    );
+  }
+
   return (
     <main className="page-content">
       <div className="container">
@@ -88,7 +118,6 @@ export default function AboutPage() {
                 'Kiểm tra máy kỹ lưỡng: Pin, màn hình, bàn phím, loa, webcam, wifi, bluetooth...',
                 'Cài đặt Windows bản quyền, driver đầy đủ, sẵn sàng sử dụng ngay',
                 'Bảo hành phần cứng 3-12 tháng tùy dòng máy',
-                'Hỗ trợ trả góp 0% qua thẻ tín dụng và công ty tài chính',
                 'Freeship toàn quốc, đóng gói cẩn thận chống sốc',
                 'Hỗ trợ kỹ thuật, vệ sinh máy miễn phí trọn đời',
                 'Thu cũ đổi mới giá cao nhất thị trường Cần Thơ',
@@ -119,8 +148,8 @@ export default function AboutPage() {
               <div className="stat-label">Tháng bảo hành</div>
             </div>
             <div className="stat-card">
-              <div className="stat-number">0%</div>
-              <div className="stat-label">Lãi suất trả góp</div>
+              <div className="stat-number">100%</div>
+              <div className="stat-label">Cam kết chất lượng</div>
             </div>
           </div>
         </section>

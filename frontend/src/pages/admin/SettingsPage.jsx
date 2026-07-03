@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   Settings as SettingsIcon, Save, Globe, Phone,
   Image as ImageIcon, Share2, Code, Bell,
@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { http } from '../../api/client';
 import { useSite } from '../../context/SiteContext';
-import ImageTool from '../../components/specific/ImageTool';
+import ImageTool from '../../components/admin/ImageTool';
 
 /* ── Default values ── */
 const EMPTY = {
@@ -18,9 +18,11 @@ const EMPTY = {
   youtubeUrl: '', tiktokUrl: '', instagramUrl: '',
   googleTagScript: '', metaDescription: '',
   maintenanceMode: false, popupEnabled: false, popupImageUrl: '', popupLinkUrl: '',
+  popupDelay: 3, popupDuration: 10,
   frameUrl: '', frameMode: 'background', framePaddingPct: 10,
   watermarkLogoUrl: '', watermarkPosition: 'bottom-right', watermarkSizePct: 22, watermarkOpacity: 0.9,
-  autoRemoveBg: 'none', productsPerPage: 10
+  autoRemoveBg: 'none', productsPerPage: 10,
+  featuredDisplayType: 'GRID', featuredDisplayCount: 10, featuredSliderInterval: 3000, featuredSliderSpeed: 500
 };
 
 /* ── Reusable sub-components ── */
@@ -132,6 +134,114 @@ function MediaField({ label, hint, value, onChange }) {
         </div>
         <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => handleFile(e.target.files?.[0])} />
       </div>
+    </div>
+  );
+}
+function DragDropMediaField({ label, hint, value, onChange }) {
+  const fileRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [dragActive, setDragActive] = useState(false);
+
+  const handleFile = async (file) => {
+    if (!file) return;
+    setUploading(true);
+    setProgress(0);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await http.post('/admin/uploads', fd, {
+        params: { folder: 'popup' },
+        onUploadProgress: (p) => setProgress(Math.round((p.loaded * 100) / p.total))
+      });
+      onChange(res.data.url || res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setUploading(false);
+      setProgress(0);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  };
+
+  const handleDrag = useCallback((e) => {
+    e.preventDefault(); e.stopPropagation();
+    if (e.type === 'dragenter' || e.type === 'dragover') setDragActive(true);
+    else if (e.type === 'dragleave') setDragActive(false);
+  }, []);
+
+  const handleDrop = useCallback((e) => {
+    e.preventDefault(); e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFile(e.dataTransfer.files[0]);
+    }
+  }, []);
+
+  return (
+    <div className="settings-field settings-field-span">
+      <label className="form-label">
+        {label}
+        {hint && <span className="settings-field-hint">{hint}</span>}
+      </label>
+      
+      <div 
+        className={`image-upload-area ${dragActive ? 'drag-active' : ''}`}
+        style={{ 
+          border: '2px dashed var(--border)', 
+          padding: value ? '5px' : '40px 20px', 
+          textAlign: 'center', 
+          cursor: value || uploading ? 'default' : 'pointer', 
+          minHeight: '150px', 
+          background: '#f9fafb', 
+          borderRadius: '8px',
+          marginTop: '8px'
+        }}
+        onDragEnter={handleDrag} onDragLeave={handleDrag} onDragOver={handleDrag} onDrop={handleDrop} 
+        onClick={() => !value && !uploading && fileRef.current?.click()}
+      >
+        {uploading ? (
+          <div style={{ padding: '40px 0' }}>
+            <p style={{ margin: '0 0 10px', color: 'var(--primary)', fontWeight: 'bold' }}>Đang tải lên... {progress}%</p>
+            <div style={{ width: '80%', height: '6px', background: '#e0e0e0', margin: '0 auto', borderRadius: '3px', overflow: 'hidden' }}>
+              <div style={{ width: `${progress}%`, height: '100%', background: 'var(--primary)', transition: 'width 0.3s' }}></div>
+            </div>
+          </div>
+        ) : !value ? (
+          <div style={{ pointerEvents: 'none' }}>
+            <ImageIcon size={40} style={{ color: '#ccc', marginBottom: '10px' }} />
+            <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>Click hoặc kéo thả ảnh vào đây</p>
+          </div>
+        ) : (
+          <div>
+            <img src={value} alt="Preview" style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '4px', display: 'block', margin: '0 auto' }} />
+          </div>
+        )}
+        <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleFile(e.target.files?.[0])} />
+      </div>
+      
+      {value && (
+        <div style={{ marginTop: '10px', display: 'flex', gap: '8px' }}>
+          <input
+            className="form-input"
+            value={value || ''}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder="URL ảnh..."
+            style={{ flex: 1, fontSize: 13 }}
+          />
+          <button 
+            type="button" 
+            className="btn btn-outline btn-sm"
+            onClick={() => {
+              onChange('');
+              if (fileRef.current) fileRef.current.value = '';
+            }}
+          >
+            <X size={14} style={{ marginRight: 4 }} />
+            Xóa ảnh
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -414,6 +524,25 @@ export default function SettingsPage() {
                   <FormField label="Số sản phẩm trên mỗi trang" hint="Áp dụng cho trang Tất cả sản phẩm">
                     <input className="form-input" type="number" min="1" value={form.productsPerPage || 10} onChange={set('productsPerPage')} />
                   </FormField>
+                  <FormField label="Kiểu hiển thị SP nổi bật (Trang chủ)">
+                    <select className="form-input" value={form.featuredDisplayType || 'GRID'} onChange={set('featuredDisplayType')}>
+                      <option value="GRID">Dạng lưới (Grid)</option>
+                      <option value="SLIDER">Dạng thanh trượt (Slider)</option>
+                    </select>
+                  </FormField>
+                  <FormField label="Số SP nổi bật tối đa">
+                    <input className="form-input" type="number" min="1" value={form.featuredDisplayCount || 10} onChange={set('featuredDisplayCount')} />
+                  </FormField>
+                  {form.featuredDisplayType === 'SLIDER' && (
+                    <>
+                      <FormField label="Thời gian chờ trượt (ms)">
+                        <input className="form-input" type="number" min="1000" step="100" value={form.featuredSliderInterval || 3000} onChange={set('featuredSliderInterval')} />
+                      </FormField>
+                      <FormField label="Tốc độ trượt (ms)">
+                        <input className="form-input" type="number" min="100" step="50" value={form.featuredSliderSpeed || 500} onChange={set('featuredSliderSpeed')} />
+                      </FormField>
+                    </>
+                  )}
                 </div>
               </SectionCard>
 
@@ -451,25 +580,38 @@ export default function SettingsPage() {
 
                 {form.popupEnabled && (
                   <div className="settings-grid-2" style={{ marginTop: 20 }}>
-                    <FormField label="Hình ảnh Popup" span>
-                      <input
-                        className="form-input"
-                        value={form.popupImageUrl || ''}
-                        onChange={set('popupImageUrl')}
-                        placeholder="URL hình ảnh popup..."
+                    <div style={{ gridColumn: '1 / -1' }}>
+                      <DragDropMediaField 
+                        label="Hình ảnh Popup" 
+                        hint="Hình ảnh hiển thị khi khách vào trang chủ lần đầu"
+                        value={form.popupImageUrl} 
+                        onChange={(v) => setForm((f) => ({ ...f, popupImageUrl: v }))} 
                       />
-                      {form.popupImageUrl && (
-                        <div className="settings-popup-preview">
-                          <img src={form.popupImageUrl} alt="Popup preview" />
-                        </div>
-                      )}
-                    </FormField>
+                    </div>
                     <FormField label="Đường dẫn khi click Popup">
                       <input
                         className="form-input"
                         value={form.popupLinkUrl || ''}
                         onChange={set('popupLinkUrl')}
                         placeholder="https://..."
+                      />
+                    </FormField>
+                    <FormField label="Thời gian trễ (giây)" hint="Hiển thị sau X giây">
+                      <input
+                        className="form-input"
+                        type="number"
+                        min="0"
+                        value={form.popupDelay ?? 3}
+                        onChange={set('popupDelay')}
+                      />
+                    </FormField>
+                    <FormField label="Tự động đóng (giây)" hint="Nhập 0 để không tự đóng">
+                      <input
+                        className="form-input"
+                        type="number"
+                        min="0"
+                        value={form.popupDuration ?? 10}
+                        onChange={set('popupDuration')}
                       />
                     </FormField>
                   </div>

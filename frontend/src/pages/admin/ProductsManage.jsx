@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useToast } from '../../context/ToastContext';
-import { Package, Plus, Search, ArrowLeft, Edit2, Trash2, Image, Link2, Eye, EyeOff, Calendar, Hash, Tag, FileText, Globe, Upload, ChevronDown, Bold, Italic, Underline as UnderlineIcon, Strikethrough, AlignLeft, AlignCenter, AlignRight, AlignJustify, List, ListOrdered, Link as LinkIcon, Code, Quote, Minus, Undo2, Redo2, Type, Palette, Table, ImageIcon, X, Copy, ChevronsUpDown } from 'lucide-react';
+import { Package, Plus, Search, ArrowLeft, Edit2, Trash2, Image, Link2, Eye, EyeOff, Calendar, Hash, Tag, FileText, Globe, Upload, ChevronDown, Bold, Italic, Underline as UnderlineIcon, Strikethrough, AlignLeft, AlignCenter, AlignRight, AlignJustify, List, ListOrdered, Link as LinkIcon, Code, Quote, Minus, Undo2, Redo2, Type, Palette, Table, ImageIcon, X, Copy, ChevronsUpDown, Save, Check } from 'lucide-react';
 
 import { CKEditor } from 'ckeditor4-react';
 import { http, API } from '../../api/client';
@@ -31,7 +31,7 @@ function todayStr() {
 
 const EMPTY_PRODUCT = {
   name: '', slug: '', sku: '',
-  price: '', salePrice: '', stock: 10,
+  price: '', salePrice: '', saleStartTime: '', saleEndTime: '', stock: 10,
   image: '', gallery: [],
   cpu: '', ram: '', ssd: '', screen: '', vga: '', battery: '', weight: '',
   description: '', content: '', promotion: '', specs: '',
@@ -199,6 +199,8 @@ export default function ProductsManage() {
   const openEdit = (item) => {
     setForm({
       ...item,
+      saleStartTime: item.saleStartTime ? item.saleStartTime.substring(0, 16) : '',
+      saleEndTime: item.saleEndTime ? item.saleEndTime.substring(0, 16) : '',
       categoryId: item.category?.id || '',
       brandId: item.brand?.id || '',
       productGroupId: item.productGroup?.id || '',
@@ -288,6 +290,8 @@ export default function ProductsManage() {
         needIds: form.needIds || [],
         price: Number(form.price) || 0,
         salePrice: form.salePrice ? Number(form.salePrice) : null,
+        saleStartTime: form.saleStartTime ? form.saleStartTime + ':00' : null,
+        saleEndTime: form.saleEndTime ? form.saleEndTime + ':00' : null,
         stock: form.stock ? Number(form.stock) : 0,
         image: mainImageUrl,
         gallery: JSON.stringify(galleryUrls),
@@ -376,6 +380,8 @@ export default function ProductsManage() {
         needIds: p.needs ? p.needs.map(n => n.id) : (p.need ? [p.need.id] : []),
         price: Number(p.price) || 0,
         salePrice: p.salePrice ? Number(p.salePrice) : null,
+        saleStartTime: p.saleStartTime || null,
+        saleEndTime: p.saleEndTime || null,
         stock: p.stock ? Number(p.stock) : 0,
         image: p.image,
         gallery: p.gallery || '[]',
@@ -628,7 +634,6 @@ export default function ProductsManage() {
             <div className="admin-form-left">
 
               {/* Section: Thông tin sản phẩm */}
-              {/* Section: Thông tin sản phẩm */}
               <div className="admin-form-section">
                 <h3 className="admin-form-section-title">
                   <Package size={18} /> Thông tin sản phẩm
@@ -711,7 +716,15 @@ export default function ProductsManage() {
                     </div>
                     <div className="form-group">
                       <label className="form-label">Giá giảm (Khuyến mãi)</label>
-                      <input className="form-input" name="salePrice" type="number" value={form.salePrice} onChange={handleChange} />
+                      <input className="form-input" name="salePrice" type="number" value={form.salePrice || ''} onChange={handleChange} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Thời gian bắt đầu KM</label>
+                      <input className="form-input" name="saleStartTime" type="datetime-local" value={form.saleStartTime || ''} onChange={handleChange} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Thời gian kết thúc KM</label>
+                      <input className="form-input" name="saleEndTime" type="datetime-local" value={form.saleEndTime || ''} onChange={handleChange} />
                     </div>
                     <div className="form-group">
                       <label className="form-label">Số lượng tồn kho</label>
@@ -823,6 +836,7 @@ export default function ProductsManage() {
                       filebrowserBrowseUrl: '/admin/file-browser',
                       filebrowserUploadUrl: `${API}/admin/uploads/ckeditor?folder=products&token=${localStorage.getItem('admin_token')}`,
                       filebrowserUploadMethod: 'form',
+                      allowedContent: true,
                       versionCheck: false,
                       height: 250,
                       toolbar: [
@@ -858,6 +872,7 @@ export default function ProductsManage() {
                       filebrowserBrowseUrl: '/admin/file-browser',
                       filebrowserUploadUrl: `${API}/admin/uploads/ckeditor?folder=products&token=${localStorage.getItem('admin_token')}`,
                       filebrowserUploadMethod: 'form',
+                      allowedContent: true,
                       versionCheck: false,
                       height: 120,
                       toolbar: [
@@ -925,14 +940,9 @@ export default function ProductsManage() {
                       nodes.forEach(node => {
                         const isSelected = form.categoryId == node.id;
                         rendered.push(
-                          <label key={node.id} className={`category-checkbox-item ${isSelected ? 'active' : ''}`}
+                          <label key={node.id} className={`category-checkbox-item ${isSelected ? 'active' : ''} ${level === 0 ? 'level-0' : 'level-n'}`}
                             style={{ 
-                              paddingLeft: level > 0 ? `${level * 20 + 8}px` : '12px',
-                              fontWeight: level === 0 ? '700' : 'normal',
-                              background: isSelected ? 'var(--primary)' : (level === 0 ? 'rgba(var(--primary-rgb,27,59,90),0.04)' : 'transparent'),
-                              borderLeft: level === 0 ? '3px solid var(--primary)' : 'none',
-                              fontSize: level > 0 ? '13px' : '14px',
-                              display: 'flex', alignItems: 'center', gap: '8px'
+                              paddingLeft: level > 0 ? `${level * 20 + 12}px` : '12px'
                             }}>
                             <input type="radio" name="categoryId" checked={isSelected} onChange={() => setForm({ ...form, categoryId: node.id })} />
                             <span>{level === 0 ? '📁' : '└'} {node.name}</span>

@@ -1,6 +1,19 @@
 import React from 'react';
 import { useSite } from '../../context/SiteContext';
 
+/**
+ * Component hiển thị ảnh sản phẩm với hỗ trợ Frame và Watermark (cài đặt trong Admin → Settings).
+ *
+ * Chế độ hoạt động:
+ * 1. Không có frame/watermark → render thẻ <img> đơn giản (nhẹ DOM nhất)
+ * 2. Có frame/watermark → render dạng lồng các layer:
+ *    - Background frame (nếu frameMode = 'background'): nằm phíd sau ảnh
+ *    - Ảnh sản phẩm gốc (giữa)
+ *    - Overlay frame (nếu frameMode = 'overlay'): nằm phíd trước ảnh
+ *    - Watermark logo (góc tuỳ chọn)
+ *
+ * Props: giống <img> thông thường (src, alt, className, style, ...)
+ */
 export default function AutoImage({ src, alt, className = '', style = {}, ...props }) {
   const { settings } = useSite();
 

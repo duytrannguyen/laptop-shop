@@ -8,5 +8,9 @@ public record CategoryRequest(
     @NotBlank @Pattern(regexp = "^[a-z0-9]+(?:-[a-z0-9]+)*$", message = "Slug không hợp lệ") @Size(max = 180) String slug,
     String image,
     boolean active,
+    String displayType,
+    Integer displayCount,
+    Integer sliderInterval,
+    Integer sliderSpeed,
     List<Long> parentIds
 ) {}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight, Search, Package, CheckCircle, Truck, Clock, MapPin, Phone } from 'lucide-react';
 import { http } from '../../api/client';
+import { useSite } from '../../context/SiteContext';
 
 const fmt = (n) => (n ? Number(n).toLocaleString('vi-VN') + ' đ' : '0 đ');
 
@@ -20,6 +21,7 @@ export default function OrderTrackingPage() {
   const [orders, setOrders] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { settings } = useSite();
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -68,7 +70,7 @@ export default function OrderTrackingPage() {
             <input
               className="form-input"
               style={{ paddingLeft: '46px', fontSize: '16px', height: '52px' }}
-              placeholder="Nhập số điện thoại (VD: 0816109179)"
+              placeholder={`Nhập số điện thoại (VD: ${settings.hotline})`}
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               required
@@ -90,7 +92,7 @@ export default function OrderTrackingPage() {
           <div className="order-track-error fade-in">
             <p>{error}</p>
             <p style={{ fontSize: '13px', marginTop: '8px' }}>
-              Cần hỗ trợ? Gọi <a href="tel:0816109179" style={{ color: 'var(--primary)', fontWeight: '700' }}>0816.109.179</a>
+              Cần hỗ trợ? Gọi <a href={`tel:${settings.hotline.replace(/\./g, '')}`} style={{ color: 'var(--primary)', fontWeight: '700' }}>{settings.hotline}</a>
             </p>
           </div>
         )}
@@ -174,7 +176,7 @@ export default function OrderTrackingPage() {
         <div className="about-cta" style={{ marginTop: '40px' }}>
           <h2>Cần hỗ trợ thêm?</h2>
           <p>Liên hệ Tech Shop nếu bạn cần kiểm tra chi tiết đơn hàng</p>
-          <a href="tel:0816109179" className="btn btn-primary btn-lg">📞 Gọi 0816.109.179</a>
+          <a href={`tel:${settings.hotline.replace(/\./g, '')}`} className="btn btn-primary btn-lg">📞 Gọi {settings.hotline}</a>
         </div>
       </div>
     </main>

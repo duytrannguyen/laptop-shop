@@ -8,7 +8,7 @@ import { http } from '../../api/client';
 ────────────────────────────────────────────── */
 const INDENT = 28;       // px per level indent
 const MAX_LEVEL = 5;     // Hỗ trợ sâu 5 cấp
-const EMPTY_FORM = { name: '', slug: '', image: '', active: true, parentIds: [] };
+const EMPTY_FORM = { name: '', slug: '', image: '', active: true, parentIds: [], displayType: 'GRID', displayCount: 10, sliderInterval: 3000, sliderSpeed: 500 };
 
 function toSlug(str) {
   if (!str) return '';
@@ -126,7 +126,7 @@ export default function CategoriesManage() {
 
   const openEdit = item => {
     const parentIds = allCats.filter(c => c.children?.some(ch => ch.id === item.id)).map(c => c.id);
-    setForm({ name: item.name || '', slug: item.slug || '', image: item.image || '', active: item.active ?? true, parentIds });
+    setForm({ name: item.name || '', slug: item.slug || '', image: item.image || '', active: item.active ?? true, parentIds, displayType: item.displayType || 'GRID', displayCount: item.displayCount || 10, sliderInterval: item.sliderInterval || 3000, sliderSpeed: item.sliderSpeed || 500 });
     setEditId(item.id);
     setModal(true);
   };
@@ -135,7 +135,7 @@ export default function CategoriesManage() {
     e.preventDefault();
     setSaving(true);
     try {
-      const payload = { name: form.name, slug: form.slug, image: form.image || null, active: form.active, parentIds: form.parentIds || [] };
+      const payload = { name: form.name, slug: form.slug, image: form.image || null, active: form.active, parentIds: form.parentIds || [], displayType: form.displayType, displayCount: Number(form.displayCount), sliderInterval: Number(form.sliderInterval), sliderSpeed: Number(form.sliderSpeed) };
       if (editId) {
         await http.put(`/admin/categories/${editId}`, payload);
         showToast('Cập nhật danh mục thành công!');
@@ -464,6 +464,31 @@ export default function CategoriesManage() {
                     onChange={e => setForm({ ...form, image: e.target.value })} placeholder="https://..." />
                   {form.image && <img src={form.image} alt="preview" style={{ marginTop: '8px', height: '60px', borderRadius: '6px', objectFit: 'contain', border: '1px solid var(--border)', background: '#f8f9fa', padding: '4px' }} />}
                 </div>
+                <div className="form-group" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div>
+                    <label className="form-label">Kiểu hiển thị trên trang chủ</label>
+                    <select className="form-input" value={form.displayType} onChange={e => setForm({ ...form, displayType: e.target.value })}>
+                      <option value="GRID">Dạng lưới (Grid)</option>
+                      <option value="SLIDER">Dạng thanh trượt (Slider)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="form-label">Số lượng sản phẩm</label>
+                    <input type="number" min="1" max="50" className="form-input" value={form.displayCount} onChange={e => setForm({ ...form, displayCount: e.target.value })} />
+                  </div>
+                </div>
+                {form.displayType === 'SLIDER' && (
+                  <div className="form-group" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div>
+                      <label className="form-label">Thời gian chờ trượt (ms)</label>
+                      <input type="number" min="1000" step="100" className="form-input" value={form.sliderInterval} onChange={e => setForm({ ...form, sliderInterval: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className="form-label">Tốc độ trượt (ms)</label>
+                      <input type="number" min="100" step="50" className="form-input" value={form.sliderSpeed} onChange={e => setForm({ ...form, sliderSpeed: e.target.value })} />
+                    </div>
+                  </div>
+                )}
                 <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px', cursor: 'pointer', padding: '10px 14px', background: 'var(--bg)', borderRadius: '8px', border: '1px solid var(--border)' }}>
                   <input type="checkbox" checked={form.active} onChange={e => setForm({ ...form, active: e.target.checked })} style={{ width: '16px', height: '16px' }} />
                   <span>{form.active ? '🟢 Hiển thị danh mục' : '🔴 Ẩn danh mục'}</span>

@@ -43,9 +43,22 @@ import ContactsManage from './pages/admin/ContactsManage';
 import MenuManage from './pages/admin/MenuManage';
 import FooterManage from './pages/admin/FooterManage';
 
-import './styles/app.css';
-import './styles/toast.css';
+import './styles/app.css';   // CSS toàn cục
+import './styles/toast.css'; // CSS cho hệ thống thông báo Toast
 
+/**
+ * Component gốc của ứng dụng.
+ *
+ * Thứ tự bọc Context (quan trọng):
+ * 1. AuthProvider – quản lý đăng nhập admin (cần thiết nhất, bọc ngoài cùng sau BrowserRouter)
+ * 2. SiteProvider – cài đặt website (cần biết URL API từ AuthContext)
+ * 3. CartProvider – giỏ hàng (dùng getEffectivePrice từ priceUtils)
+ * 4. ToastProvider – thông báo (dùng trong CartContext và nhiều nơi khác)
+ *
+ * Hai component tiện ích:
+ * - ScrollToTop: cuộn về đầu trang mỗi khi chuyển route
+ * - BackToTop: nút cuộn lên đầu trang (hiện khi cuộn xuống > 300px)
+ */
 function App() {
   return (
     <BrowserRouter>

@@ -3,6 +3,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { ChevronRight, CheckCircle } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { http } from '../../api/client';
+import { getEffectivePrice } from '../../utils/priceUtils';
 
 const fmt = (n) => (n ? Number(n).toLocaleString('vi-VN') + ' đ' : 'LIÊN HỆ');
 
@@ -160,7 +161,7 @@ export default function CheckoutPage() {
                   <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>x{item.qty}</div>
                 </div>
                 <div style={{ fontWeight: '700', color: 'var(--primary)', fontSize: '14px', whiteSpace: 'nowrap' }}>
-                  {fmt((item.salePrice || item.price) * item.qty)}
+                  {fmt(getEffectivePrice(item) * item.qty)}
                 </div>
               </div>
             ))}

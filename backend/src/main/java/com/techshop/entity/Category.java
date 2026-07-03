@@ -35,6 +35,22 @@ public class Category {
     @Builder.Default
     private Integer sortOrder = 0;
 
+    @Column(name = "display_type", length = 20)
+    @Builder.Default
+    private String displayType = "GRID";
+
+    @Column(name = "display_count")
+    @Builder.Default
+    private Integer displayCount = 10;
+
+    @Column(name = "slider_interval")
+    @Builder.Default
+    private Integer sliderInterval = 3000;
+
+    @Column(name = "slider_speed")
+    @Builder.Default
+    private Integer sliderSpeed = 500;
+
 
     /**
      * Danh sách danh mục CHA chứa category này.

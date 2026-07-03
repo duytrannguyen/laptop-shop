@@ -1,4 +1,4 @@
-package com.techshop.controller;
+package com.techshop.controller.admin;
 
 import com.techshop.dto.*;
 import com.techshop.entity.*;
@@ -13,10 +13,26 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.*;
 
+/**
+ * Controller quản trị – xử lý toàn bộ CRUD cho Admin (yêu cầu ROLE_ADMIN).
+ *
+ * Bao gồm các nhóm chức năng:
+ * - Sản phẩm (Products): thêm/sửa/xóa/cập nhật nhanh
+ * - Danh mục (Categories): cây danh mục, kéo thả sắp xếp
+ * - Thương hiệu (Brands), Nhóm sản phẩm (ProductGroups), Nhu cầu (Needs)
+ * - Bài viết & Trang (Posts)
+ * - Đơn hàng (Orders): xem và cập nhật trạng thái
+ * - Banner: thêm/xóa/kéo thả
+ * - Cài đặt Website (SiteSettings)
+ * - Liên hệ (ContactMessages)
+ * - Menu & Footer Items
+ * - Tiện ích: fix-db (migration thủ công), stats (thống kê dashboard)
+ */
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
 public class AdminController {
+    // Tập hợp các trạng thái đơn hàng hợp lệ
     private static final Set<String> ORDER_STATUSES = Set.of(
             "PENDING", "CONFIRMED", "SHIPPING", "DONE", "CANCELLED");
 
@@ -36,20 +52,29 @@ public class AdminController {
     @org.springframework.beans.factory.annotation.Value("${app.upload-dir}")
     private String uploadDirStr;
 
+    /**
+     * Xóa file ảnh khỏi ổ đĩa khi xóa sản phẩm/danh mục/banner.
+     * Chỉ xóa các file trong thư mục /uploads/ để tránh xóa nhầm file hệ thống.
+     */
     private void deleteImageFile(String url) {
         if (url == null || url.isBlank() || !url.startsWith("/uploads/")) return;
         try {
             java.nio.file.Path uploadDir = java.nio.file.Path.of(uploadDirStr).toAbsolutePath().normalize();
             String relativePath = url.substring("/uploads/".length());
             java.nio.file.Path targetPath = uploadDir.resolve(relativePath).normalize();
+            // Kiểm tra path không bị thoát ra ngoài thư mục upload (path traversal attack)
             if (targetPath.startsWith(uploadDir) && java.nio.file.Files.exists(targetPath)) {
                 java.nio.file.Files.delete(targetPath);
             }
         } catch (Exception e) {
-            // Ignore
+            // Bỏ qua lỗi xóa file (file đã bị xóa hoặc không có quyền)
         }
     }
 
+    /**
+     * Migration thủ công database – gọi 1 lần khi nâng cấp phiên bản.
+     * Có thể gọi lại nhiều lần mà không gây lỗi (idempotent).
+     */
     @GetMapping("/fix-db")
     public String fixDb() {
         try { jdbcTemplate.execute("ALTER TABLE product MODIFY COLUMN brand VARCHAR(100) NULL"); } catch(Exception e) {}
@@ -62,6 +87,7 @@ public class AdminController {
         return "DB Fixed";
     }
 
+    /** Thống kê tổng quan cho trang Dashboard: số lượng sản phẩm, danh mục, bài viết, đơn hàng, banner, liên hệ chưa xử lý. */
     @GetMapping("/stats")
     Map<String, Object> stats() {
         return Map.of(
@@ -112,6 +138,10 @@ public class AdminController {
         products.deleteById(id);
     }
 
+    /**
+     * Cập nhật nhanh một số trường của sản phẩm (không cần gửi toàn bộ dữ liệu).
+     * Dùng cho toggle nổi bật, toggle hiển thị, cập nhật ngày đăng trực tiếp từ bảng danh sách.
+     */
     @PatchMapping("/products/{id}/quick-update")
     Product quickUpdateProduct(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
         Product product = products.findById(id).orElseThrow(() -> notFound("Không tìm thấy sản phẩm"));
@@ -192,8 +222,11 @@ public class AdminController {
         categories.deleteById(id);
     }
 
-    /** Lưu thứ tự kéo thả: nhận list [{id, sortOrder, parentId?}]
-     *  parentId = null → danh mục gốc; parentId = Long → danh mục con */
+    /**
+     * Lưu thứ tự kéo thả danh mục: nhận list [{id, sortOrder, parentId?}].
+     * parentId = null → danh mục gốc; parentId = Long → danh mục con.
+     * Cập nhật cả sortOrder lẫn quan hệ cha-con trong một lần gọi.
+     */
     @PutMapping("/categories/reorder")
     @Transactional
     List<Category> reorderCategories(@RequestBody List<Map<String, Object>> items) {
@@ -314,7 +347,10 @@ public class AdminController {
     }
 
     @GetMapping("/posts")
-    List<Post> posts() {
+    List<Post> posts(@RequestParam(required = false) String type) {
+        if (type != null && !type.isBlank()) {
+            return posts.findByTypeOrderByCreatedAtDesc(type.toUpperCase(Locale.ROOT));
+        }
         return posts.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
     }
 
@@ -322,7 +358,14 @@ public class AdminController {
     @ResponseStatus(HttpStatus.CREATED)
     Post createPost(@Valid @RequestBody Post post) {
         post.setId(null);
-        post.setCreatedAt(LocalDateTime.now());
+        if (post.getCreatedAt() == null) {
+            post.setCreatedAt(LocalDateTime.now());
+        }
+        if (post.getType() == null || post.getType().isBlank()) {
+            post.setType("ARTICLE");
+        } else {
+            post.setType(post.getType().toUpperCase(Locale.ROOT));
+        }
         return posts.save(post);
     }
 
@@ -334,6 +377,15 @@ public class AdminController {
         post.setImage(request.getImage());
         post.setContent(request.getContent());
         post.setActive(request.isActive());
+        post.setMetaTitle(request.getMetaTitle());
+        post.setMetaDescription(request.getMetaDescription());
+        post.setMetaImage(request.getMetaImage());
+        if (request.getCreatedAt() != null) {
+            post.setCreatedAt(request.getCreatedAt());
+        }
+        if (request.getType() != null && !request.getType().isBlank()) {
+            post.setType(request.getType().toUpperCase(Locale.ROOT));
+        }
         return posts.save(post);
     }
 
@@ -350,6 +402,11 @@ public class AdminController {
         return orders.findAllByOrderByCreatedAtDesc();
     }
 
+    /**
+     * Cập nhật trạng thái đơn hàng.
+     * Đặc biệt: khi hủy đơn (CANCELLED) → tự động hoàn lại tồn kho cho từng sản phẩm.
+     * Không cho phép mở lại đơn đã hủy.
+     */
     @PutMapping("/orders/{id}/status")
     @Transactional
     Order updateOrderStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
@@ -497,10 +554,16 @@ public class AdminController {
         return menuItems.findByTypeOrderBySortOrderAsc(type);
     }
 
+    /** Helper: tìm sản phẩm theo ID, ném 404 nếu không tồn tại. */
     private Product product(Long id) {
         return products.findById(id).orElseThrow(() -> notFound("Không tìm thấy sản phẩm"));
     }
 
+    /**
+     * Áp dụng dữ liệu từ ProductRequest vào entity Product.
+     * Kiểm tra: giá bán không được lớn hơn giá gốc.
+     * Xử lý quan hệ: gắn brand, productGroup, needs, category theo ID.
+     */
     private void applyProduct(Product product, ProductRequest request) {
         if (request.salePrice() != null && request.salePrice().signum() > 0
                 && request.price() != null && request.salePrice().compareTo(request.price()) > 0) {
@@ -549,6 +612,14 @@ public class AdminController {
         category.setSlug(request.slug().trim());
         category.setImage(blankToNull(request.image()));
         category.setActive(request.active());
+        if (request.displayType() != null && !request.displayType().isBlank()) {
+            category.setDisplayType(request.displayType().toUpperCase(Locale.ROOT));
+        } else {
+            category.setDisplayType("GRID");
+        }
+        category.setDisplayCount(request.displayCount() != null ? request.displayCount() : 10);
+        category.setSliderInterval(request.sliderInterval() != null ? request.sliderInterval() : 3000);
+        category.setSliderSpeed(request.sliderSpeed() != null ? request.sliderSpeed() : 500);
         // Xử lý quan hệ cha: xóa cha cũ rồi gán cha mới
         category.getParents().clear();
         if (request.parentIds() != null && !request.parentIds().isEmpty()) {
@@ -572,10 +643,12 @@ public class AdminController {
         if (request.type() != null && !request.type().isBlank()) banner.setType(request.type());
     }
 
+    /** Helper: chuyển chuỗi rỗng/null thành null (tránh lưu chuỗi rỗng vào DB). */
     private String blankToNull(String value) {
         return value == null || value.isBlank() ? null : value.trim();
     }
 
+    /** Helper: tạo exception 404 Not Found với message tùy chỉnh. */
     private ResponseStatusException notFound(String message) {
         return new ResponseStatusException(HttpStatus.NOT_FOUND, message);
     }

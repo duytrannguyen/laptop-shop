@@ -35,4 +35,17 @@ public class Post {
 
     private LocalDateTime createdAt;
     private boolean active;
+    
+    @Column(length = 50)
+    @Builder.Default
+    private String type = "ARTICLE";
+
+    @Column(length = 250)
+    private String metaTitle;
+
+    @Column(length = 500)
+    private String metaDescription;
+
+    @Column(length = 1000)
+    private String metaImage;
 }

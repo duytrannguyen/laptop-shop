@@ -1,14 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, ChevronDown, HelpCircle } from 'lucide-react';
+import { ChevronRight, ChevronDown, HelpCircle, Calendar } from 'lucide-react';
+import { useSite } from '../../context/SiteContext';
+import { http } from '../../api/client';
 
-const faqData = [
+export default function FAQPage() {
+  const [dynamicContent, setDynamicContent] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    http.get('/posts/faq')
+      .then(res => setDynamicContent(res.data))
+      .catch(() => setDynamicContent(null))
+      .finally(() => setLoading(false));
+  }, []);
+  const [openItems, setOpenItems] = useState({});
+  const { settings } = useSite();
+
+  const toggle = (key) => {
+    setOpenItems((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const faqData = [
   {
     category: 'Mua hàng',
     items: [
       {
         q: 'Làm sao để đặt hàng tại Tech Shop?',
-        a: 'Bạn có thể đặt hàng trực tiếp trên website, gọi hotline 0816.109.179, hoặc đến trực tiếp cửa hàng tại Số 25, đường B25, KDC 91B, Cần Thơ. Khi đặt online, bạn chỉ cần chọn sản phẩm, thêm vào giỏ hàng và điền thông tin giao hàng.',
+        a: `Bạn có thể đặt hàng trực tiếp trên website, gọi hotline ${settings.hotline}, hoặc đến trực tiếp cửa hàng tại Số 25, đường B25, KDC 91B, Cần Thơ. Khi đặt online, bạn chỉ cần chọn sản phẩm, thêm vào giỏ hàng và điền thông tin giao hàng.`,
       },
       {
         q: 'Tech Shop có giao hàng toàn quốc không?',
@@ -20,7 +39,7 @@ const faqData = [
       },
       {
         q: 'Tech Shop có nhận thanh toán chuyển khoản không?',
-        a: 'Có, Tech Shop chấp nhận thanh toán tiền mặt, chuyển khoản ngân hàng, và các ví điện tử phổ biến. Khi mua trả góp, thanh toán qua thẻ tín dụng hoặc công ty tài chính.',
+        a: 'Có, Tech Shop chấp nhận thanh toán tiền mặt, chuyển khoản ngân hàng, và các ví điện tử phổ biến.',
       },
     ],
   },
@@ -33,7 +52,7 @@ const faqData = [
       },
       {
         q: 'Quy trình bảo hành như thế nào?',
-        a: 'Khi cần bảo hành, bạn liên hệ hotline 0816.109.179 hoặc mang máy đến cửa hàng. Kỹ thuật viên sẽ kiểm tra và xử lý trong 1-3 ngày làm việc. Nếu ở xa, Tech Shop hỗ trợ ship 2 chiều.',
+        a: `Khi cần bảo hành, bạn liên hệ hotline ${settings.hotline} hoặc mang máy đến cửa hàng. Kỹ thuật viên sẽ kiểm tra và xử lý trong 1-3 ngày làm việc. Nếu ở xa, Tech Shop hỗ trợ ship 2 chiều.`,
       },
       {
         q: 'Pin thiết bị có được bảo hành không?',
@@ -41,23 +60,7 @@ const faqData = [
       },
     ],
   },
-  {
-    category: 'Trả góp',
-    items: [
-      {
-        q: 'Mua trả góp cần những giấy tờ gì?',
-        a: 'Trả góp qua thẻ tín dụng: chỉ cần thẻ Visa/Mastercard/JCB. Trả góp qua công ty tài chính: cần CCCD/CMND, hộ khẩu hoặc KT3. Duyệt hồ sơ chỉ trong 15 phút.',
-      },
-      {
-        q: 'Trả góp 0% nghĩa là gì?',
-        a: 'Trả góp 0% nghĩa là bạn chỉ trả đúng giá sản phẩm, không phải trả thêm bất kỳ khoản lãi nào. Tổng số tiền trả góp = giá sản phẩm. Tech Shop sẽ hỗ trợ phần lãi suất.',
-      },
-      {
-        q: 'Sinh viên có được mua trả góp không?',
-        a: 'Sinh viên từ 18 tuổi trở lên có thể đăng ký trả góp qua công ty tài chính. Cần CCCD và thẻ sinh viên. Ngoài ra, sinh viên còn được giảm thêm 300K khi mua sản phẩm tại Tech Shop.',
-      },
-    ],
-  },
+
   {
     category: 'Vận chuyển',
     items: [
@@ -71,14 +74,26 @@ const faqData = [
       },
     ],
   },
-];
+  ];
 
-export default function FAQPage() {
-  const [openItems, setOpenItems] = useState({});
+  if (loading) return <main className="page-content"><div className="loading"><div className="spinner" /></div></main>;
 
-  const toggle = (key) => {
-    setOpenItems((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
+  if (dynamicContent) {
+    return (
+      <main className="page-content">
+        <article className="container post-detail">
+          <div className="breadcrumb">
+            <Link to="/">Trang chủ</Link>
+            <ChevronRight size={14} className="separator" />
+            <span>{dynamicContent.title}</span>
+          </div>
+          <h1 style={{ textAlign: 'center', marginBottom: '24px' }}>{dynamicContent.title}</h1>
+          {dynamicContent.image && <img className="post-cover" src={dynamicContent.image} alt={dynamicContent.title} style={{ display: 'block', margin: '0 auto 32px', borderRadius: '12px' }} />}
+          <div className="post-content ck-content" dangerouslySetInnerHTML={{ __html: dynamicContent.content }} />
+        </article>
+      </main>
+    );
+  }
 
   return (
     <main className="page-content">
@@ -94,7 +109,7 @@ export default function FAQPage() {
           <HelpCircle size={48} style={{ color: 'var(--primary)', marginBottom: '16px' }} />
           <h1 style={{ fontSize: '28px', marginBottom: '8px' }}>Câu hỏi thường gặp</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '16px', maxWidth: '600px', margin: '0 auto' }}>
-            Tìm câu trả lời cho những thắc mắc phổ biến về mua hàng, bảo hành, trả góp tại Tech Shop
+            Tìm câu trả lời cho những thắc mắc phổ biến về mua hàng, bảo hành tại Tech Shop
           </p>
         </div>
 
@@ -128,7 +143,7 @@ export default function FAQPage() {
           <h2>Không tìm thấy câu trả lời?</h2>
           <p>Liên hệ trực tiếp với Tech Shop để được hỗ trợ nhanh nhất</p>
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <a href="tel:0816109179" className="btn btn-primary btn-lg">📞 Gọi 0816.109.179</a>
+            <a href={`tel:${settings.hotline.replace(/\./g, '')}`} className="btn btn-primary btn-lg">📞 Gọi {settings.hotline}</a>
             <Link to="/contact" className="btn btn-outline btn-lg">Gửi tin nhắn</Link>
           </div>
         </div>
