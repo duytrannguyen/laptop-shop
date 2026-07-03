@@ -222,7 +222,6 @@ export default function Header() {
           })()}
           <div className="cat-label">Hỗ trợ</div>
           <Link to="/warranty">Chính sách bảo hành</Link>
-          <Link to="/installment">Mua trả góp 0%</Link>
           <Link to="/faq">Câu hỏi thường gặp</Link>
         </div>
       </div>

@@ -4,7 +4,7 @@
   z-index: 9999;
   padding: 1rem;
   pointer-events: none;
-  bottom: 0;
+  top: 0;
   right: 0;
 }
 
@@ -19,10 +19,26 @@
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
   border-radius: 0.375rem;
   opacity: 0;
-  transform: translateY(20px);
+  transform: translateY(-20px);
   transition: all 0.3s ease-in-out;
   margin-bottom: 0.5rem;
   display: block;
+  position: relative;
+  overflow: hidden;
+}
+
+.toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  background-color: #0d6efd;
+  animation: toast-progress-anim 2s linear forwards;
+}
+
+@keyframes toast-progress-anim {
+  0% { width: 100%; }
+  100% { width: 0%; }
 }
 
 .toast.show {

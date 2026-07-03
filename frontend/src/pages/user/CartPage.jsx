@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Trash2, Plus, Minus, ShoppingCart, ChevronRight } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import AutoImage from '../../components/common/AutoImage';
+import { getEffectivePrice } from '../../utils/priceUtils';
 
 const fmt = (n) => (n ? Number(n).toLocaleString('vi-VN') + ' đ' : 'LIÊN HỆ');
 
@@ -60,7 +61,7 @@ export default function CartPage() {
                 </button>
               </div>
               <div className="cart-item-price">
-                {fmt((item.salePrice || item.price) * item.qty)}
+                {fmt(getEffectivePrice(item) * item.qty)}
               </div>
               <button className="cart-item-remove" onClick={() => remove(item.id)}>
                 <Trash2 size={18} />

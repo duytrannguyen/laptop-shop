@@ -11,7 +11,7 @@ import { http } from '../../api/client';
 // ======= Constants =======
 const POSITIONS = {
   SLIDER:  { label: 'Slider chính',   icon: '🎠', desc: 'Banner trượt chính giữa trang chủ' },
-  SIDEBAR: { label: 'Banner phụ',     icon: '📌', desc: 'Banner nhỏ bên phải slider (Trả góp, Freeship...)' },
+  SIDEBAR: { label: 'Banner phụ',     icon: '📌', desc: 'Banner nhỏ bên phải slider (Khuyến mãi, Freeship...)' },
   STRIP:   { label: 'Banner dải dưới',icon: '🎨', desc: '4 ô màu phía dưới slider (Ưu đãi, Khuyến mãi...)' },
 };
 

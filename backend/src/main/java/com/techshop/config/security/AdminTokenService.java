@@ -1,4 +1,4 @@
-package com.techshop.config;
+package com.techshop.config.security;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -9,6 +9,15 @@ import java.security.MessageDigest;
 import java.time.Instant;
 import java.util.Base64;
 
+/**
+ * Dịch vụ tạo và kiểm tra token đăng nhập cho Admin.
+ *
+ * Cơ chế token (tự thiết kế, không dùng JWT library):
+ * - Cấu trúc: base64(email) . expireTimestamp . HmacSHA256(payload)
+ * - Không cần lưu vào database → stateless hoàn toàn
+ * - Thời hạn token (TTL) cấu hình qua app.token.ttl-seconds (mặc định 12 giờ)
+ * - Chữ ký HMAC-SHA256 ngăn chặn token bị giả mạo
+ */
 @Service
 public class AdminTokenService {
     private final byte[] secret;
@@ -21,6 +30,10 @@ public class AdminTokenService {
         this.ttlSeconds = ttlSeconds;
     }
 
+    /**
+     * Tạo token mới cho email admin.
+     * Format: base64url(email).expireTimestamp.signature
+     */
     public String issue(String email) {
         long expiresAt = Instant.now().getEpochSecond() + ttlSeconds;
         String payload = Base64.getUrlEncoder().withoutPadding()
@@ -28,12 +41,19 @@ public class AdminTokenService {
         return payload + "." + sign(payload);
     }
 
+    /**
+     * Kiểm tra token có hợp lệ không.
+     * - Phải đúng 3 phần cách nhau bởi dấu "."
+     * - Chưa hết hạn (timestamp > thời điểm hiện tại)
+     * - Chữ ký HMAC khớp (xác nhận token chưa bị sửa đổi)
+     */
     public boolean isValid(String token) {
         try {
             String[] parts = token.split("\\.");
             if (parts.length != 3) return false;
             String payload = parts[0] + "." + parts[1];
             long expiresAt = Long.parseLong(parts[1]);
+            // So sánh thời hạn VÀ chữ ký bằng constant-time để chống timing attack
             return expiresAt > Instant.now().getEpochSecond()
                     && MessageDigest.isEqual(sign(payload).getBytes(StandardCharsets.UTF_8),
                     parts[2].getBytes(StandardCharsets.UTF_8));
@@ -42,6 +62,10 @@ public class AdminTokenService {
         }
     }
 
+    /**
+     * Tạo chữ ký HMAC-SHA256 cho payload.
+     * Dùng khóa bí mật (app.token.secret) → ai không biết secret thì không thể làm giả chữ ký.
+     */
     private String sign(String payload) {
         try {
             Mac mac = Mac.getInstance("HmacSHA256");

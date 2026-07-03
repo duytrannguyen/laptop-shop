@@ -1,8 +1,43 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight, CreditCard, CheckCircle, FileText, Clock, Smartphone } from 'lucide-react';
+import { useSite } from '../../context/SiteContext';
+import { http } from '../../api/client';
 
 export default function InstallmentPage() {
+  const { settings } = useSite();
+  const [dynamicContent, setDynamicContent] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    http.get('/posts/installment')
+      .catch(() => http.get('/posts/mua-tra-gop'))
+      .then(res => {
+        if (res && res.data) setDynamicContent(res.data);
+        else setDynamicContent(null);
+      })
+      .catch(() => setDynamicContent(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <main className="page-content"><div className="loading"><div className="spinner" /></div></main>;
+
+  if (dynamicContent) {
+    return (
+      <main className="page-content">
+        <article className="container post-detail">
+          <div className="breadcrumb">
+            <Link to="/">Trang chủ</Link>
+            <ChevronRight size={14} className="separator" />
+            <span>{dynamicContent.title}</span>
+          </div>
+          <h1 style={{ textAlign: 'center', marginBottom: '24px' }}>{dynamicContent.title}</h1>
+          {dynamicContent.image && <img className="post-cover" src={dynamicContent.image} alt={dynamicContent.title} style={{ display: 'block', margin: '0 auto 32px', borderRadius: '12px' }} />}
+          <div className="post-content ck-content" dangerouslySetInnerHTML={{ __html: dynamicContent.content }} />
+        </article>
+      </main>
+    );
+  }
   return (
     <main className="page-content">
       <div className="container">
@@ -140,7 +175,7 @@ export default function InstallmentPage() {
           <p>Liên hệ Tech Shop để được tư vấn phương thức trả góp phù hợp nhất</p>
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link to="/products" className="btn btn-primary btn-lg">Xem sản phẩm</Link>
-            <a href="tel:0816109179" className="btn btn-outline btn-lg">📞 Gọi tư vấn</a>
+            <a href={`tel:${settings.hotline.replace(/\./g, '')}`} className="btn btn-outline btn-lg">📞 Gọi tư vấn</a>
           </div>
         </div>
       </div>

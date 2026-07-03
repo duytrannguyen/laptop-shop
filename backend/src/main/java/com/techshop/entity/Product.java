@@ -29,6 +29,8 @@ public class Product {
     private Brand brand;
     private BigDecimal price;
     private BigDecimal salePrice;
+    private LocalDateTime saleStartTime;
+    private LocalDateTime saleEndTime;
 
     @Column(length = 1500)
     private String image;

@@ -303,33 +303,6 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: var(--shadow-md);
 }
 
-/* === Stats Cards === */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: var(--gap-md);
-}
-
-.stat-card {
-  background: var(--bg-white);
-  border-radius: var(--radius-lg);
-  padding: var(--gap-lg);
-  text-align: center;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-light);
-}
-
-.stat-card .stat-number {
-  font-size: 32px;
-  font-weight: 900;
-  color: var(--primary);
-}
-
-.stat-card .stat-label {
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin-top: 4px;
-}
 
 /* === Policies === */
 .policies-grid {

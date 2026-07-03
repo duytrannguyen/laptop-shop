@@ -62,6 +62,15 @@ public class SiteSetting {
     @Column(length = 500)
     private String popupLinkUrl;
 
+    private Integer popupDelay; // in seconds
+    private Integer popupDuration; // in seconds
+
+    // === Hiển thị Sản phẩm nổi bật ===
+    private String featuredDisplayType; // GRID or SLIDER
+    private Integer featuredDisplayCount;
+    private Integer featuredSliderInterval;
+    private Integer featuredSliderSpeed;
+
     // === Công cụ ảnh (Watermark/Frame Auto) ===
     private String watermarkLogoUrl;
     private String watermarkPosition; // 'bottom-right', 'center', etc.

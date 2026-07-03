@@ -3,8 +3,10 @@ import { useParams, Link, Navigate } from 'react-router-dom';
 import { ShoppingCart, CreditCard, ChevronRight, Phone, CheckCircle2, Gift, ChevronLeft } from 'lucide-react';
 import { http } from '../../api/client';
 import { useCart } from '../../context/CartContext';
-import ProductCard from '../../components/specific/ProductCard';
+import { useSite } from '../../context/SiteContext';
+import ProductCard from '../../components/product/ProductCard';
 import AutoImage from '../../components/common/AutoImage';
+import { hasActiveSale, getEffectivePrice } from '../../utils/priceUtils';
 
 const fmt = (n) => (n ? Number(n).toLocaleString('vi-VN') + ' đ' : 'LIÊN HỆ');
 
@@ -17,6 +19,7 @@ export default function ProductDetailPage() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [error, setError] = useState('');
   const { add } = useCart();
+  const { settings } = useSite();
   const descRef = React.useRef(null);
 
   useEffect(() => {
@@ -61,9 +64,11 @@ export default function ProductDetailPage() {
   }
 
   const p = product;
-  const hasDiscount = p.salePrice && p.price && p.salePrice < p.price;
+  const activeSale = hasActiveSale(p);
+  const effectivePrice = getEffectivePrice(p);
+  const hasDiscount = activeSale && effectivePrice < p.price;
   const discountPercent = hasDiscount
-    ? Math.round(((p.price - p.salePrice) / p.price) * 100)
+    ? Math.round(((p.price - effectivePrice) / p.price) * 100)
     : 0;
 
 
@@ -125,7 +130,7 @@ export default function ProductDetailPage() {
             <h1 className="pd-title">{p.name}</h1>
 
             <div className="pd-price-row">
-              <span className="pd-price-current">{fmt(p.salePrice || p.price)}</span>
+              <span className="pd-price-current">{fmt(effectivePrice)}</span>
               {hasDiscount && (
                 <>
                   <span className="pd-price-old">{fmt(p.price)}</span>
@@ -160,7 +165,7 @@ export default function ProductDetailPage() {
                 <CreditCard size={20} />
                 Mua ngay
               </Link>
-              <a href="tel:0816109179" className="btn pd-cta-contact">
+              <a href={`tel:${settings.hotline.replace(/\./g, '')}`} className="btn pd-cta-contact">
                 <Phone size={18} />
                 Liên hệ tư vấn
               </a>

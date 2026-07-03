@@ -1,8 +1,45 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight, Shield, RefreshCw, AlertTriangle, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { useSite } from '../../context/SiteContext';
+import { http } from '../../api/client';
 
 export default function WarrantyPage() {
+  const { settings } = useSite();
+  const [dynamicContent, setDynamicContent] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    http.get('/posts/warranty')
+      .catch(() => http.get('/posts/bao-hanh'))
+      .catch(() => http.get('/posts/chinh-sach-bao-hanh'))
+      .then(res => {
+        if (res && res.data) setDynamicContent(res.data);
+        else setDynamicContent(null);
+      })
+      .catch(() => setDynamicContent(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <main className="page-content"><div className="loading"><div className="spinner" /></div></main>;
+
+  if (dynamicContent) {
+    return (
+      <main className="page-content">
+        <article className="container post-detail">
+          <div className="breadcrumb">
+            <Link to="/">Trang chủ</Link>
+            <ChevronRight size={14} className="separator" />
+            <span>{dynamicContent.title}</span>
+          </div>
+          <h1 style={{ textAlign: 'center', marginBottom: '24px' }}>{dynamicContent.title}</h1>
+          {dynamicContent.image && <img className="post-cover" src={dynamicContent.image} alt={dynamicContent.title} style={{ display: 'block', margin: '0 auto 32px', borderRadius: '12px' }} />}
+          <div className="post-content ck-content" dangerouslySetInnerHTML={{ __html: dynamicContent.content }} />
+        </article>
+      </main>
+    );
+  }
+  
   return (
     <main className="page-content">
       <div className="container">
@@ -98,7 +135,7 @@ export default function WarrantyPage() {
                   <ul className="policy-list">
                     <li>Mang theo phiếu bảo hành và hóa đơn mua hàng</li>
                     <li>Sản phẩm phải còn nguyên trạng, không trầy xước thêm</li>
-                    <li>Liên hệ hotline <strong>0816.109.179</strong> trước khi đổi trả</li>
+                    <li>Liên hệ hotline <strong>{settings.hotline}</strong> trước khi đổi trả</li>
                     <li>Phí ship đổi trả do Tech Shop chi trả (nếu lỗi từ sản phẩm)</li>
                   </ul>
                 </div>
@@ -117,7 +154,7 @@ export default function WarrantyPage() {
                 <div className="warranty-step">
                   <div className="warranty-step-number">1</div>
                   <h4>Liên hệ</h4>
-                  <p>Gọi hotline <strong>0816.109.179</strong> hoặc mang máy trực tiếp đến cửa hàng</p>
+                  <p>Gọi hotline <strong>{settings.hotline}</strong> hoặc mang máy trực tiếp đến cửa hàng</p>
                 </div>
                 <div className="warranty-step">
                   <div className="warranty-step-number">2</div>
@@ -144,7 +181,7 @@ export default function WarrantyPage() {
           <h2>Cần hỗ trợ bảo hành?</h2>
           <p>Liên hệ Tech Shop qua hotline hoặc mang máy trực tiếp đến cửa hàng</p>
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <a href="tel:0816109179" className="btn btn-primary btn-lg">📞 Gọi 0816.109.179</a>
+            <a href={`tel:${settings.hotline.replace(/\./g, '')}`} className="btn btn-primary btn-lg">📞 Gọi {settings.hotline}</a>
             <Link to="/contact" className="btn btn-outline btn-lg">Xem địa chỉ cửa hàng</Link>
           </div>
         </div>

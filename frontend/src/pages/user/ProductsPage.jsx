@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { http } from '../../api/client';
-import ProductCard from '../../components/specific/ProductCard';
+import ProductCard from '../../components/product/ProductCard';
 import { useSite } from '../../context/SiteContext';
+import { getEffectivePrice } from '../../utils/priceUtils';
 
 // Brands will be fetched dynamically from API
 const priceRanges = [
@@ -79,7 +80,7 @@ export default function ProductsPage() {
     }
     // Price range
     const priceRange = priceRanges[selectedPrice];
-    const price = p.salePrice || p.price;
+    const price = getEffectivePrice(p);
     if (price < priceRange.min || price > priceRange.max) {
       return false;
     }
@@ -88,8 +89,8 @@ export default function ProductsPage() {
 
   // Sort
   filtered = [...filtered].sort((a, b) => {
-    const pa = a.salePrice || a.price;
-    const pb = b.salePrice || b.price;
+    const pa = getEffectivePrice(a);
+    const pb = getEffectivePrice(b);
     switch (sortBy) {
       case 'price-asc': return pa - pb;
       case 'price-desc': return pb - pa;

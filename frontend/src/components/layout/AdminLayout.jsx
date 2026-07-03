@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard, Package, FolderTree, Newspaper,
+  LayoutDashboard, Package, FolderTree, Newspaper, FileText,
   ClipboardList, Settings, LogOut, Menu, X, ExternalLink, Images, MessageSquare, ChevronDown, ChevronRight
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import NotificationBell from '../admin/NotificationBell';
 
+/**
+ * Cấu hình các mục menu của sidebar Admin.
+ * Mỗi item có thể là link đơn hoặc nhóm có sub-items (có thể mở rộng/thu gọn).
+ */
 const navItems = [
   { to: '/admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
   {
@@ -30,13 +35,24 @@ const navItems = [
       { to: '/admin/product-groups', label: 'Nhóm sản phẩm' },
     ]
   },
-  { to: '/admin/posts', icon: Newspaper, label: 'Bài viết' },
+  { to: '/admin/posts', icon: Newspaper, label: 'Bài viết & Trang' },
   { to: '/admin/orders', icon: ClipboardList, label: 'Đơn hàng' },
   { to: '/admin/banners', icon: Images, label: 'Banner' },
   { to: '/admin/media', icon: FolderTree, label: 'Thư viện ảnh' },
   { to: '/admin/contacts', icon: MessageSquare, label: 'Liên hệ' },
 ];
 
+/**
+ * Layout Admin – khung giao diện cho toàn bộ trang quản trị.
+ *
+ * Cấu trúc:
+ * - Sidebar (menu trái): điều hướng giữa các trang quản trị
+ * - Topbar (thanh trên): link xem website, chuông thông báo, tên admin, nút đăng xuất
+ * - Nội dung chính: <Outlet /> render trang con tương ứng
+ *
+ * Bảo mật: Kiểm tra isAdmin khi mount – nếu chưa đăng nhập → redirect về trang login.
+ * Menu nhóm có thể mở rộng/thu gọn, tự động mở nhóm chứa trang hiện tại khi load.
+ */
 export default function AdminLayout() {
   const { user, isAdmin, logout } = useAuth();
   const location = useLocation();
@@ -52,29 +68,33 @@ export default function AdminLayout() {
     return initialState;
   });
 
-  // Auth guard
+  // Auth guard: kiểm tra đăng nhập và tự redirect nếu chưa đăng nhập
   useEffect(() => {
     if (!isAdmin) {
       navigate('/admin/login', { replace: true });
     }
   }, [isAdmin, navigate]);
 
-  if (!isAdmin) return null;
+  if (!isAdmin) return null; // Tránh flash UI trước khi redirect
 
+  /** Kiểm tra xem link có đang active không (dùng để highlight menu đang chọn). */
   const isActive = (path, end) => {
     if (end) return location.pathname === path;
     return location.pathname.startsWith(path);
   };
 
+  /** Đăng xuất và chuyển về trang login. */
   const handleLogout = () => {
     logout();
     navigate('/admin/login', { replace: true });
   };
 
+  /** Kiểm tra xem nhóm menu có chứa route đang active không (highlight nhóm cha). */
   const isGroupActive = (item) => {
     return item.subItems?.some(sub => isActive(sub.to, true));
   };
 
+  /** Toggle mở/đóng nhóm menu con trong sidebar. */
   const toggleMenu = (key) => {
     setOpenMenus(prev => ({ ...prev, [key]: !prev[key] }));
   };
@@ -181,7 +201,9 @@ export default function AdminLayout() {
             <span>Xem website</span>
           </Link>
           
-          {user && (
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <NotificationBell />
+            {user && (
             <div className="admin-topbar-user">
               <div className="admin-topbar-avatar">
                 {user.name ? user.name.charAt(0).toUpperCase() : 'A'}
@@ -190,10 +212,11 @@ export default function AdminLayout() {
             </div>
           )}
 
-          <button onClick={handleLogout} className="admin-topbar-logout">
-            <LogOut size={16} />
-            <span>Đăng xuất</span>
-          </button>
+            <button onClick={handleLogout} className="admin-topbar-logout">
+              <LogOut size={16} />
+              <span>Đăng xuất</span>
+            </button>
+          </div>
         </div>
 
         <Outlet />
