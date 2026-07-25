@@ -61,6 +61,12 @@ Website thương mại điện tử bán sản phẩm công nghệ, xây dựng 
 
 ```
 laptop-shop/
+├── configs/
+│   ├── docker-compose.yml      # Cấu hình Docker Compose gốc
+│   └── nginx.conf              # Cấu hình Nginx server cho frontend
+├── database/
+│   ├── seed_products.sql       # Script khởi tạo dữ liệu sản phẩm
+│   └── seed_more_products.sql  # Script khởi tạo thêm dữ liệu sản phẩm
 ├── backend/
 │   ├── pom.xml
 │   ├── uploads/                    # File upload (ảnh sản phẩm, banner...)
@@ -263,3 +269,24 @@ mvn test
 cd frontend
 npm run build
 ```
+
+---
+
+## Triển khai siêu nhẹ bằng Docker Compose (Khuyên dùng cho Server)
+
+Hệ thống đã được cấu hình tối ưu để sử dụng rất ít RAM và khởi chạy cực nhanh bằng Docker.
+
+1. **Khởi chạy toàn bộ hệ thống (Background):**
+   ```powershell
+   docker-compose -f configs/docker-compose.yml up -d
+   ```
+2. **Kiểm tra logs:**
+   ```powershell
+   docker-compose -f configs/docker-compose.yml logs -f
+   ```
+3. **Dừng hệ thống:**
+   ```powershell
+   docker-compose -f configs/docker-compose.yml down
+   ```
+
+> Truy cập ứng dụng tại `http://localhost:5173` và API tại `http://localhost:8080`. MySQL được phơi ra ở port `3306`.

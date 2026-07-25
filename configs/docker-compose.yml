@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # ---------------------------------------------
+  # DATABASE (MySQL)
+  # ---------------------------------------------
+  mysql-db:
+    image: mysql:8.0
+    container_name: techshop-mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: techshop
+      MYSQL_ROOT_PASSWORD: dongduy122
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    # Tối ưu RAM cho MySQL trên máy cấu hình yếu
+    command: --innodb-buffer-pool-size=128M --max-connections=100
+
+  # ---------------------------------------------
+  # BACKEND (Spring Boot)
+  # ---------------------------------------------
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: techshop-backend
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_URL=jdbc:mysql://mysql-db:3306/techshop?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Ho_Chi_Minh&createDatabaseIfNotExist=true
+      - DB_USERNAME=root
+      - DB_PASSWORD=dongduy122
+      - CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+    depends_on:
+      - mysql-db
+    volumes:
+      - uploads_data:/app/uploads
+    # Giới hạn tài nguyên để tránh backend ăn hết RAM
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+
+  # ---------------------------------------------
+  # FRONTEND (React + Nginx)
+  # ---------------------------------------------
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: techshop-frontend
+    restart: always
+    ports:
+      - "5173:80" # Nginx phục vụ trên port 80 trong container, map ra 5173 cho người dùng
+    depends_on:
+      - backend
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf # Mount file cấu hình Nginx từ thư mục configs
+    # Frontend chạy Nginx rất nhẹ, chỉ cần ít RAM
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
+
+volumes:
+  db_data:
+  uploads_data:
