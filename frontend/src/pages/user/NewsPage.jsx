@@ -7,7 +7,7 @@ export default function NewsPage() {
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {
-    http.get('/posts').then((r) => setPosts(r.data)).catch(() => {});
+    http.get('/posts?type=ARTICLE').then((r) => setPosts(r.data)).catch(() => {});
   }, []);
 
   return (

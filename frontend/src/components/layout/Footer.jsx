@@ -86,35 +86,10 @@ export default function Footer() {
   const roots    = footerItems.filter(i => !i.parentId);
   const children = (parentId) => footerItems.filter(i => i.parentId === parentId);
 
-  /* Fallback columns khi chưa cài menu footer */
-  const defaultColumns = [
-    {
-      title: 'Về Tech Shop',
-      links: [
-        { label: 'Giới thiệu',        url: '/about' },
-        { label: 'Tuyển dụng',        url: '/careers' },
-        { label: 'Tin tức công nghệ', url: '/news' },
-        { label: 'Liên hệ',           url: '/contact' },
-        { label: 'Kiểm tra đơn hàng', url: '/order-tracking' },
-      ]
-    },
-    {
-      title: 'Chính sách',
-      links: [
-        { label: 'Chính sách bảo hành', url: '/warranty' },
-        { label: 'Hướng dẫn trả góp',   url: '/installment' },
-        { label: 'Câu hỏi thường gặp',  url: '/faq' },
-        { label: 'Điều khoản dịch vụ',  url: '/terms' },
-      ]
-    }
-  ];
-
-  let footerColumns = roots.length > 0
-    ? roots.map(root => ({
-        title: root.label,
-        links: children(root.id).map(c => ({ label: c.label, url: c.url || '#' }))
-      }))
-    : defaultColumns;
+  let footerColumns = roots.map(root => ({
+      title: root.label,
+      links: children(root.id).map(c => ({ label: c.label, url: c.url || '#' }))
+    }));
 
   // Đảm bảo luôn có link Kiểm tra đơn hàng nếu chưa có
   const hasOrderTracking = footerColumns.some(col => 
@@ -182,12 +157,42 @@ export default function Footer() {
 
   const fbEmbedUrl  = buildFbEmbedUrl(settings.facebookUrl);
   const mapEmbedUrl = buildMapEmbedUrl(settings.mapUrl);
-  const hasEmbeds   = fbEmbedUrl || mapEmbedUrl;
+
+  const displayColumns = footerColumns.length > 0 ? footerColumns : [
+    {
+      title: 'Chính sách chung',
+      links: [
+        { label: 'Chính sách bảo hành', url: '/warranty' },
+        { label: 'Chính sách đổi trả', url: '/return-policy' },
+        { label: 'Bảo mật thông tin', url: '/privacy' },
+        { label: 'Hướng dẫn mua hàng', url: '/shopping-guide' },
+        { label: 'Kiểm tra đơn hàng', url: '/order-tracking' }
+      ]
+    }
+  ];
+
+  const colsCount = displayColumns.length;
+  // 4 base columns: Brand, Menu(s), Connect, Embeds
+  let gridStyle = `2fr repeat(${colsCount}, 1fr) 1.2fr 1.5fr`;
+
+  const EmbedPlaceholder = ({ title }) => (
+    <div className="embed-placeholder" style={{ 
+      width: '100%', height: '130px', 
+      background: 'rgba(255,255,255,0.03)', 
+      border: '1px dashed rgba(255,255,255,0.15)', 
+      borderRadius: '8px', 
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      color: 'rgba(255,255,255,0.3)', fontSize: '12px',
+      marginTop: '10px'
+    }}>
+      {title}
+    </div>
+  );
 
   return (
     <footer className="site-footer">
       <div className="container">
-        <div className="footer-grid">
+        <div className="footer-grid" style={{ '--desktop-grid': gridStyle }}>
 
           {/* ── Cột 1: Brand & Contact ── */}
           <div className="footer-col footer-about">
@@ -235,8 +240,8 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* ── Cột 2 & 3: Menu Columns ── */}
-          {footerColumns.map((col, idx) => (
+          {/* ── Cột Menu (Chính sách) ── */}
+          {displayColumns.map((col, idx) => (
             <div className="footer-col" key={idx}>
               <h4>{col.title}</h4>
               <div className="footer-links">
@@ -247,7 +252,7 @@ export default function Footer() {
             </div>
           ))}
 
-          {/* ── Cột 4: Kết nối + Thanh toán ── */}
+          {/* ── Cột Mạng xã hội & Thanh toán ── */}
           <div className="footer-col footer-connect">
             <h4>Kết nối với chúng tôi</h4>
             <div className="footer-socials">
@@ -261,24 +266,21 @@ export default function Footer() {
                   tag,
                   {
                     key: s.key,
-                    className: `social-chip${active ? '' : ' social-chip--inactive'}`,
+                    className: `social-chip icon-only${active ? '' : ' social-chip--inactive'}`,
                     style: { '--chip-bg': s.bg, '--chip-color': s.color },
                     'aria-label': `${s.label}${s.sublabel ? ' ' + s.sublabel : ''}`,
+                    title: `${s.label}${s.sublabel ? ' ' + s.sublabel : ''}`,
                     ...props,
                   },
                   <span className="social-chip-icon" style={{ background: s.bg }}>
                     {s.icon}
-                  </span>,
-                  <span className="social-chip-text">
-                    <span className="social-chip-name">{s.label}</span>
-                    {s.sublabel && <span className="social-chip-sub">{s.sublabel}</span>}
                   </span>
                 );
               })}
             </div>
 
             {/* Phương thức thanh toán */}
-            <div className="footer-payment-section">
+            <div className="footer-payment-section" style={{ marginTop: '24px' }}>
               <h4>Thanh toán</h4>
               <div className="footer-payments">
                 {paymentMethods.map((m, i) => (
@@ -291,64 +293,42 @@ export default function Footer() {
             </div>
           </div>
 
-        </div>
-
-        {/* ── Fanpage & Bản đồ ── */}
-        {hasEmbeds && (
-          <div className="footer-embeds-row">
-            {fbEmbedUrl && (
-              <div className="footer-embed-card">
-                <div className="footer-embed-header">
-                  <span className="footer-embed-dot footer-embed-dot--fb" />
-                  <span className="footer-embed-title">Fanpage Facebook</span>
-                  <a href={settings.facebookUrl} target="_blank" rel="noopener noreferrer" className="footer-embed-link">
-                    Xem trang
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
-                    </svg>
-                  </a>
-                </div>
-                <iframe
-                  src={fbEmbedUrl}
-                  width="100%"
-                  height="130"
-                  style={{ border: 'none', overflow: 'hidden' }}
-                  scrolling="no"
-                  frameBorder="0"
-                  allowFullScreen={true}
-                  allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-                  title="Facebook Fanpage"
-                />
-              </div>
+          {/* ── Cột Fanpage & Bản đồ ── */}
+          <div className="footer-col footer-embeds-col">
+            <h4>Fanpage & Bản đồ</h4>
+            {fbEmbedUrl ? (
+              <iframe
+                src={fbEmbedUrl}
+                width="100%"
+                height="130"
+                style={{ border: 'none', overflow: 'hidden', marginBottom: '16px', borderRadius: '8px' }}
+                scrolling="no"
+                frameBorder="0"
+                allowFullScreen={true}
+                allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                title="Facebook Fanpage"
+              />
+            ) : (
+              <EmbedPlaceholder title="Chưa cấu hình Fanpage" />
             )}
-            {mapEmbedUrl && (
-              <div className="footer-embed-card">
-                <div className="footer-embed-header">
-                  <span className="footer-embed-dot footer-embed-dot--map" />
-                  <span className="footer-embed-title">Bản đồ cửa hàng</span>
-                  {settings.mapUrl && (
-                    <a href={settings.mapUrl} target="_blank" rel="noopener noreferrer" className="footer-embed-link">
-                      Chỉ đường
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
-                      </svg>
-                    </a>
-                  )}
-                </div>
-                <iframe
-                  src={mapEmbedUrl}
-                  width="100%"
-                  height="180"
-                  style={{ border: 0 }}
-                  allowFullScreen=""
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  title="Google Map"
-                />
-              </div>
+
+            {mapEmbedUrl ? (
+              <iframe
+                src={mapEmbedUrl}
+                width="100%"
+                height="130"
+                style={{ border: 0, borderRadius: '8px' }}
+                allowFullScreen=""
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Google Map"
+              />
+            ) : (
+              <EmbedPlaceholder title="Chưa cấu hình Bản đồ" />
             )}
           </div>
-        )}
+
+        </div>
 
         {/* ── Footer Bottom ── */}
         <div className="footer-bottom">

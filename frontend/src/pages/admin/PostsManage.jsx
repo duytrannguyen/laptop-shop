@@ -126,6 +126,21 @@ export default function PostsManage() {
     }
   };
 
+  const handleQuickUpdate = async (id, field, value) => {
+    try {
+      const item = data.find(x => x.id === id);
+      if (!item) return;
+      const updatedItem = { ...item, [field]: value };
+      if (field === 'createdAt' && value && !value.includes('T')) {
+        updatedItem.createdAt = value + 'T00:00:00';
+      }
+      await http.put(`/admin/posts/${id}`, updatedItem);
+      load();
+    } catch (err) {
+      showToast('Không thể cập nhật nhanh!');
+    }
+  };
+
   // Drag and Drop
   const handleDrag = useCallback((e) => {
     e.preventDefault(); e.stopPropagation();

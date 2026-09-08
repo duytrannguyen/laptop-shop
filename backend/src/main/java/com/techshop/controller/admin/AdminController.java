@@ -71,21 +71,7 @@ public class AdminController {
         }
     }
 
-    /**
-     * Migration thủ công database – gọi 1 lần khi nâng cấp phiên bản.
-     * Có thể gọi lại nhiều lần mà không gây lỗi (idempotent).
-     */
-    @GetMapping("/fix-db")
-    public String fixDb() {
-        try { jdbcTemplate.execute("ALTER TABLE product MODIFY COLUMN brand VARCHAR(100) NULL"); } catch(Exception e) {}
-        try { jdbcTemplate.execute("ALTER TABLE product MODIFY COLUMN `condition` VARCHAR(255) NULL"); } catch(Exception e) {}
-        try { jdbcTemplate.execute("INSERT IGNORE INTO product_need (product_id, need_id) SELECT id, need_id FROM product WHERE need_id IS NOT NULL"); } catch(Exception e) { System.out.println("Migrate product_need skip: " + e.getMessage()); }
-        try { jdbcTemplate.execute("ALTER TABLE banner DROP COLUMN title"); } catch(Exception e) {}
-        try { jdbcTemplate.execute("ALTER TABLE banner DROP COLUMN badge"); } catch(Exception e) {}
-        try { jdbcTemplate.execute("ALTER TABLE banner DROP COLUMN background"); } catch(Exception e) {}
-        try { jdbcTemplate.execute("ALTER TABLE banner DROP COLUMN sort_order"); } catch(Exception e) {}
-        return "DB Fixed";
-    }
+
 
     /** Thống kê tổng quan cho trang Dashboard: số lượng sản phẩm, danh mục, bài viết, đơn hàng, banner, liên hệ chưa xử lý. */
     @GetMapping("/stats")
