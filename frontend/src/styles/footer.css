@@ -61,7 +61,7 @@
    ═══════════════════════════════════════════════════ */
 .footer-grid {
   display: grid;
-  grid-template-columns: 2.2fr 1fr 1fr 1.8fr;
+  grid-template-columns: var(--desktop-grid, 2fr 1fr 1.2fr 1.5fr);
   gap: 48px;
   padding-bottom: 44px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
@@ -267,11 +267,11 @@
   gap: 0;
 }
 
+/* ── Socials ── */
 .footer-socials {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 /* ── Single social chip ── */
@@ -292,6 +292,25 @@
   transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   cursor: pointer;
   user-select: none;
+}
+
+.social-chip.icon-only {
+  padding: 0;
+  width: 36px;
+  height: 36px;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.social-chip.icon-only .social-chip-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+
+.social-chip.icon-only svg {
+  width: 16px;
+  height: 16px;
 }
 
 .social-chip:hover:not(.social-chip--inactive) {
@@ -563,39 +582,27 @@
 /* ═══════════════════════════════════════════════════
    RESPONSIVE
    ═══════════════════════════════════════════════════ */
-@media (max-width: 1100px) {
+@media (max-width: 1024px) {
   .footer-grid {
-    grid-template-columns: 1.7fr 1fr 1fr 1.5fr;
-    gap: 32px;
+    grid-template-columns: 1.5fr 1fr !important;
+    gap: 40px 32px;
   }
 }
 
-@media (max-width: 860px) {
+@media (max-width: 768px) {
   .site-footer {
     padding: 56px 0 0;
   }
 
   .footer-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 32px 36px;
-  }
-
-  .footer-col.footer-about {
-    grid-column: 1 / -1;
-    padding-right: 0;
-  }
-
-  .footer-col.footer-connect {
-    grid-column: 1 / -1;
-  }
-
-  .footer-socials {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: 1fr !important;
+    gap: 32px;
   }
 
   .footer-payments {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
   }
 
   .footer-bottom {
@@ -606,48 +613,17 @@
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 480px) {
   .site-footer {
     padding: 44px 0 0;
   }
 
-  .footer-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-  }
-
-  .footer-col.footer-about,
-  .footer-col.footer-connect {
-    grid-column: 1 / -1;
-  }
-
-  .footer-socials {
+  .footer-payments {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .footer-embeds-row {
-    grid-template-columns: 1fr;
-  }
-
-  .footer-contact-item:hover {
-    transform: none;
-  }
-
+  .footer-contact-item:hover,
   .payment-badge:hover {
     transform: none;
-  }
-}
-
-@media (max-width: 400px) {
-  .footer-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .footer-socials {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .footer-payments {
-    grid-template-columns: 1fr;
   }
 }

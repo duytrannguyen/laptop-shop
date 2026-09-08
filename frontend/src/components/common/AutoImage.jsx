@@ -17,8 +17,16 @@ import { useSite } from '../../context/SiteContext';
 export default function AutoImage({ src, alt, className = '', style = {}, ...props }) {
   const { settings } = useSite();
 
+  const handleImgError = (e) => {
+    if (e.target.src !== 'https://placehold.co/400x300?text=No+Image') {
+      e.target.src = 'https://placehold.co/400x300?text=No+Image';
+    }
+  };
+
+  const defaultSrc = src || 'https://placehold.co/400x300?text=No+Image';
+
   if (!settings) {
-    return <img src={src} alt={alt} className={className} style={style} {...props} />;
+    return <img src={defaultSrc} alt={alt} className={className} style={style} onError={handleImgError} {...props} />;
   }
 
   const {
@@ -33,8 +41,9 @@ export default function AutoImage({ src, alt, className = '', style = {}, ...pro
 
   // Nếu không có cài đặt frame/watermark nào, chỉ render thẻ img bình thường cho nhẹ DOM
   if (!frameUrl && !watermarkLogoUrl) {
-    return <img src={src} alt={alt} className={className} style={style} {...props} />;
+    return <img src={defaultSrc} alt={alt} className={className} style={style} onError={handleImgError} {...props} />;
   }
+
 
   // Dùng transform: scale() thay vì padding để thu nhỏ ảnh mà không làm méo tỷ lệ khung hình (aspect ratio) của wrapper
   const scaleValue = frameUrl && framePaddingPct ? (100 - framePaddingPct * 2) / 100 : 1;
@@ -97,9 +106,10 @@ export default function AutoImage({ src, alt, className = '', style = {}, ...pro
 
       {/* 2. Ảnh sản phẩm gốc */}
       <img 
-        src={src} 
+        src={defaultSrc} 
         alt={alt} 
         className="auto-image-main"
+        onError={handleImgError}
         style={{ 
           display: 'block', 
           width: '100%', 

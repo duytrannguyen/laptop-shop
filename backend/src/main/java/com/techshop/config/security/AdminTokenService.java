@@ -9,15 +9,7 @@ import java.security.MessageDigest;
 import java.time.Instant;
 import java.util.Base64;
 
-/**
- * Dịch vụ tạo và kiểm tra token đăng nhập cho Admin.
- *
- * Cơ chế token (tự thiết kế, không dùng JWT library):
- * - Cấu trúc: base64(email) . expireTimestamp . HmacSHA256(payload)
- * - Không cần lưu vào database → stateless hoàn toàn
- * - Thời hạn token (TTL) cấu hình qua app.token.ttl-seconds (mặc định 12 giờ)
- * - Chữ ký HMAC-SHA256 ngăn chặn token bị giả mạo
- */
+
 @Service
 public class AdminTokenService {
     private final byte[] secret;

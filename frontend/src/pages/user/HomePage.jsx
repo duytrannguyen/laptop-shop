@@ -9,40 +9,14 @@ import { useSite } from '../../context/SiteContext';
 
 const fmt = (n) => (n ? Number(n).toLocaleString('vi-VN') + ' đ' : 'LIÊN HỆ');
 
-const fallbackSlides = [
-  {
-    badge: 'Tech Shop',
-    title: 'Thiết bị số Cần Thơ – Chất lượng, uy tín, giá minh bạch',
-    desc: 'Đa dạng điện thoại, tai nghe, phụ kiện chính hãng, nguyên zin. Kiểm định kỹ, bảo hành rõ ràng.',
-    bg: 'linear-gradient(135deg, #9d0011 0%, #ed1c24 50%, #ff4444 100%)',
-  },
-  {
-    badge: 'THU CŨ ĐỔI MỚI',
-    title: 'Mang máy cũ – Nhận giá cao, đổi máy mới ngay',
-    desc: 'Thu mua thiết bị công nghệ giá cao nhất Cần Thơ. Định giá minh bạch, trả tiền ngay hoặc khấu trừ khi mua máy mới.',
-    bg: 'linear-gradient(135deg, #064e3b 0%, #059669 50%, #34d399 100%)',
-  },
-];
-
-const fallbackSidebar = [
-  { id: 's2', title: 'Freeship toàn quốc', description: 'Đóng gói cẩn thận, giao hàng nhanh chóng', linkUrl: '/products', background: 'linear-gradient(145deg, #064e3b 0%, #059669 60%, #10b981 100%)' },
-];
-
-const fallbackStrip = [
-  { id: 't1', title: '🧹 Vệ sinh thiết bị miễn phí', linkUrl: '/products', background: 'linear-gradient(135deg, #6d28d9, #8b5cf6)' },
-  { id: 't2', title: '🎁 Combo quà tặng 1 triệu', linkUrl: '/products', background: 'linear-gradient(135deg, #be185d, #ec4899)' },
-  { id: 't3', title: '🚚 Freeship toàn quốc', linkUrl: '/products', background: 'linear-gradient(135deg, #c2410c, #f97316)' },
-  { id: 't4', title: '🎓 Ưu đãi sinh viên -300K', linkUrl: '/products', background: 'linear-gradient(135deg, #0369a1, #0ea5e9)' },
-];
-
 export default function HomePage() {
   const { settings } = useSite();
   const [allProducts, setAllProducts] = useState([]);
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [heroSlides, setHeroSlides] = useState(fallbackSlides);
-  const [sidebarBanners, setSidebarBanners] = useState(fallbackSidebar);
-  const [stripBanners, setStripBanners] = useState(fallbackStrip);
+  const [heroSlides, setHeroSlides] = useState([]);
+  const [sidebarBanners, setSidebarBanners] = useState([]);
+  const [stripBanners, setStripBanners] = useState([]);
   const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
@@ -72,6 +46,20 @@ export default function HomePage() {
     setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
   }, [heroSlides.length]);
 
+  const BannerPlaceholder = ({ text, style }) => (
+    <div style={{
+      width: '100%', height: '100%', minHeight: '120px',
+      background: 'rgba(0,0,0,0.03)',
+      border: '1px dashed rgba(0,0,0,0.15)',
+      borderRadius: '12px',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      color: 'rgba(0,0,0,0.3)', fontSize: '14px',
+      ...style
+    }}>
+      {text}
+    </div>
+  );
+
   return (
     <main>
       <PopupBanner />
@@ -82,91 +70,111 @@ export default function HomePage() {
             <div className="hero-menu-spacer"></div>
             {/* Main Slider */}
             <div className="hero-slider">
-              <div
-                className="hero-slides"
-                style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-              >
-                {heroSlides.map((slide, i) => {
-                  const slideStyle = {
-                    background: slide.imageUrl
-                      ? `url(${slide.imageUrl}) center/cover`
-                      : (slide.bg || '#111827'),
-                    textDecoration: 'none'
-                  };
+              {heroSlides.length === 0 ? (
+                <BannerPlaceholder text="Chưa cấu hình Banner chính (Slider)" style={{ minHeight: '370px' }} />
+              ) : (
+                <>
+                  <div
+                    className="hero-slides"
+                    style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+                  >
+                    {heroSlides.map((slide, i) => {
+                      const slideStyle = {
+                        background: slide.imageUrl
+                          ? `url(${slide.imageUrl}) center/cover`
+                          : (slide.bg || '#111827'),
+                        textDecoration: 'none'
+                      };
 
-                  const innerContent = (
-                    <div className="hero-slide-content">
-                      {(slide.description || slide.desc) && (
-                        <>
-                          <p>{slide.description || slide.desc}</p>
-                          <span className="btn btn-primary btn-lg" style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)' }}>
-                            Xem sản phẩm
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  );
+                      const innerContent = (
+                        <div className="hero-slide-content">
+                          {(slide.description || slide.desc) && (
+                            <>
+                              <p>{slide.description || slide.desc}</p>
+                              <span className="btn btn-primary btn-lg" style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)' }}>
+                                Xem sản phẩm
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      );
 
-                  return slide.linkUrl ? (
-                    <Link to={slide.linkUrl} key={slide.id || i} className="hero-slide" style={slideStyle}>
-                      {innerContent}
-                    </Link>
-                  ) : (
-                    <div key={slide.id || i} className="hero-slide" style={slideStyle}>
-                      {innerContent}
-                    </div>
-                  );
-                })}
-              </div>
+                      return slide.linkUrl ? (
+                        <Link to={slide.linkUrl} key={slide.id || i} className="hero-slide" style={slideStyle}>
+                          {innerContent}
+                        </Link>
+                      ) : (
+                        <div key={slide.id || i} className="hero-slide" style={slideStyle}>
+                          {innerContent}
+                        </div>
+                      );
+                    })}
+                  </div>
 
-              <button className="hero-arrow hero-arrow-left" onClick={prevSlide}>
-                <ChevronLeft size={20} />
-              </button>
-              <button className="hero-arrow hero-arrow-right" onClick={nextSlide}>
-                <ChevronRight size={20} />
-              </button>
+                  <button className="hero-arrow hero-arrow-left" onClick={prevSlide}>
+                    <ChevronLeft size={20} />
+                  </button>
+                  <button className="hero-arrow hero-arrow-right" onClick={nextSlide}>
+                    <ChevronRight size={20} />
+                  </button>
 
-              <div className="hero-dots">
-                {heroSlides.map((_, i) => (
-                  <button
-                    key={i}
-                    className={`hero-dot ${i === currentSlide ? 'active' : ''}`}
-                    onClick={() => setCurrentSlide(i)}
-                  />
-                ))}
-              </div>
+                  <div className="hero-dots">
+                    {heroSlides.map((_, i) => (
+                      <button
+                        key={i}
+                        className={`hero-dot ${i === currentSlide ? 'active' : ''}`}
+                        onClick={() => setCurrentSlide(i)}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Sidebar Banners - dynamic from API */}
             <div className="hero-sidebar">
-              {sidebarBanners.map((banner) => (
-                <Link
-                  key={banner.id}
-                  to={banner.linkUrl || '/products'}
-                  className="hero-sidebar-banner"
-                  style={{
-                    background: banner.imageUrl
-                      ? `url(${banner.imageUrl}) center/cover`
-                      : (banner.background || 'linear-gradient(145deg, #1e3a5f, #3b82f6)')
-                  }}
-                >
-                  <div>
-                    <h3>{banner.title || ''}</h3>
-                    {banner.description && <p>{banner.description}</p>}
-                  </div>
-                </Link>
-              ))}
+              {sidebarBanners.length === 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', height: '100%' }}>
+                  <BannerPlaceholder text="Chưa cấu hình Banner phụ 1" style={{ flex: 1, minHeight: 'unset' }} />
+                  <BannerPlaceholder text="Chưa cấu hình Banner phụ 2" style={{ flex: 1, minHeight: 'unset' }} />
+                </div>
+              ) : (
+                sidebarBanners.map((banner) => (
+                  <Link
+                    key={banner.id}
+                    to={banner.linkUrl || '/products'}
+                    className="hero-sidebar-banner"
+                    style={{
+                      background: banner.imageUrl
+                        ? `url(${banner.imageUrl}) center/cover`
+                        : (banner.background || 'linear-gradient(145deg, #1e3a5f, #3b82f6)')
+                    }}
+                  >
+                    <div>
+                      <h3>{banner.title || ''}</h3>
+                      {banner.description && <p>{banner.description}</p>}
+                    </div>
+                  </Link>
+                ))
+              )}
             </div>
           </div>
         </div>
       </div>
 
       {/* Banner Strip - dynamic from API */}
-      {stripBanners.length > 0 && (
-        <div className="banner-strip">
-          <div className="container">
-            <div className="banner-strip-grid">
-              {stripBanners.map((banner) => (
+      <div className="banner-strip">
+        <div className="container">
+          <div className="banner-strip-grid">
+            {stripBanners.length === 0 ? (
+              <>
+                <BannerPlaceholder text="Banner dọc (Strip) 1" style={{ height: '140px' }} />
+                <BannerPlaceholder text="Banner dọc (Strip) 2" style={{ height: '140px' }} />
+                <BannerPlaceholder text="Banner dọc (Strip) 3" style={{ height: '140px' }} />
+                <BannerPlaceholder text="Banner dọc (Strip) 4" style={{ height: '140px' }} />
+              </>
+            ) : (
+              stripBanners.map((banner) => (
                 <Link
                   key={banner.id}
                   to={banner.linkUrl || '/products'}
@@ -182,11 +190,11 @@ export default function HomePage() {
                   </div>
                   {banner.imageUrl && <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)' }} />}
                 </Link>
-              ))}
-            </div>
+              ))
+            )}
           </div>
         </div>
-      )}
+      </div>
 
       {/* Hot Sale / Featured Products */}
       {featuredProducts.length > 0 && (

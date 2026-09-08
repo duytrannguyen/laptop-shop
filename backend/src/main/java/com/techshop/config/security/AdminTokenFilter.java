@@ -13,16 +13,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-/**
- * Bộ lọc xác thực token cho mọi request vào /api/admin/*.
- *
- * Cách hoạt động:
- * 1. Với mỗi request, lấy token từ header "Authorization: Bearer <token>"
- *    hoặc từ query param "?token=..." (dùng cho SSE EventSource)
- * 2. Kiểm tra token qua AdminTokenService
- * 3. Nếu hợp lệ → gắn quyền ROLE_ADMIN vào SecurityContext để tiếp tục xử lý
- * 4. Nếu không hợp lệ → trả về 401 Unauthorized ngay lập tức
- */
 @Component
 @RequiredArgsConstructor
 public class AdminTokenFilter extends OncePerRequestFilter {

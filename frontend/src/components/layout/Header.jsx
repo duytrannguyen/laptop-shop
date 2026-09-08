@@ -16,10 +16,10 @@ export default function Header() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    http.get('/categories').then((r) => setCategories(r.data)).catch(() => {});
+    http.get('/categories').then((r) => setCategories(r.data)).catch(() => { });
     http.get('/menu-items?type=MENU').then((r) => {
       if (r.data && r.data.length > 0) setMenuItems(r.data);
-    }).catch(() => {});
+    }).catch(() => { });
   }, []);
 
   useEffect(() => {
@@ -36,19 +36,14 @@ export default function Header() {
 
   const isActive = (path) => location.pathname === path;
 
-  /* Default menu links (fallback when no API data) */
-  const defaultLinks = [
-    { label: 'TRANG CHỦ', url: '/' },
-    { label: 'SẢN PHẨM', url: '/products' },
-    { label: 'GIỚI THIỆU', url: '/about' },
-    { label: 'TIN TỨC', url: '/news' },
-    { label: 'LIÊN HỆ', url: '/contact' },
-    { label: 'TRA CỨU ĐƠN', url: '/order-tracking' },
-  ];
-
   const navLinks = menuItems.length > 0
     ? menuItems.filter(i => !i.parentId).map(i => ({ label: i.label, url: i.url || '#' }))
-    : defaultLinks;
+    : [
+      { label: 'Trang chủ', url: '/' },
+      { label: 'Tất cả sản phẩm', url: '/products' },
+      { label: 'Khuyến mãi', url: '/promotions' },
+      { label: 'Tin công nghệ', url: '/news' }
+    ];
 
   const NavLinks = () => (
     <div className="nav-links">
@@ -208,7 +203,7 @@ export default function Header() {
               if (!items || items.length === 0) return null;
               return items.map((cat) => (
                 <React.Fragment key={cat.id}>
-                  <Link 
+                  <Link
                     to={`/products?category=${cat.slug}`}
                     style={{ paddingLeft: `${level * 16 + 14}px`, fontSize: level > 0 ? '13.5px' : '14.5px', fontWeight: level > 0 ? '500' : '600' }}
                   >
